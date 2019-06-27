@@ -89,7 +89,7 @@ int main(int argc, char *const argv[]) {
     return 1;
   }
 
-  PSDN::MidEnd midEnd(options);
+  PSDN::PSDNMidEnd midEnd(options);
   midEnd.addDebugHook(hook);
   try {
     toplevel = midEnd.process(program);

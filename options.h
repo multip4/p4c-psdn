@@ -14,11 +14,17 @@ class PSDNOptions : public CompilerOptions {
   public:
     //Output file
     cstring outputFile = nullptr;
+    //Input file is IR in Json format
+    bool loadIRFromJson = false;
 
     PSDNOptions () {
-      registerOption("-o", "FILEPATH",
+      registerOption("-o", "FILE",
           [this](const char* arg) { outputFile = arg; return true; },
-          "Specify output file path as FILEPATH");
+          "Save output to FILE");
+      registerOption("--fromJSON", "FILE",
+          [this](const char* arg) { loadIRFromJson = true; file = arg; return true; },
+          "Use IR representation from JSON file FILE dumped previously,"\
+          "the compilation bypasses frontend.");
     }
 };
 

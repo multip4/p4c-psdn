@@ -4,6 +4,7 @@
 
 
 #include <iostream>
+#include <fstream>
 #include <string>
 
 #include "lib/error.h"
@@ -16,9 +17,11 @@
 #include "frontends/common/parseInput.h"
 #include "frontends/p4/frontend.h"
 #include "ir/ir.h"
+#include "ir/json_loader.h"
 
 #include "version.h"
 #include "options.h"
+#include "midend.h"
 
 int main(int argc, char *const argv[]) {
   setup_gc_logging();
@@ -29,7 +32,8 @@ int main(int argc, char *const argv[]) {
   options.compilerVersion = PSDN_VERSION_STRING;
 
   if (options.process(argc, argv) != nullptr) {
-    options.setInputFile();
+    if (options.loadIRFromJson == false)
+      options.setInputFile();
   }
   if(::errorCount() > 0)
     return 1;
@@ -40,30 +44,67 @@ int main(int argc, char *const argv[]) {
   const IR::ToplevelBlock *toplevel = nullptr;
 
   //Parse P4 program and run frontend
-  program = P4::parseP4File(options);
-  if (program == nullptr || ::errorCount() > 0) {
-    std::cerr << "Failed to parse P4 program." << std::endl;
-    return 1;
-  }
-  try {
-    P4::P4COptionPragmaParser pragmaParser;
-    program->apply(P4::ApplyOptionsPragmas(pragmaParser));
+  if (options.loadIRFromJson == false) {
+    program = P4::parseP4File(options);
+    if (program == nullptr || ::errorCount() > 0) {
+      std::cerr << "Failed to parse P4 program." << std::endl;
+      return 1;
+    }
+    try {
+      P4::P4COptionPragmaParser pragmaParser;
+      program->apply(P4::ApplyOptionsPragmas(pragmaParser));
 
-    P4::FrontEnd frontend;
-    frontend.addDebugHook(hook);
-    program = frontend.run(options, program);
-  } catch (const Util::P4CExceptionBase &err) {
-    std::cerr << err.what() << std::endl;
-    return 1;
-  }
-  if (program == nullptr || ::errorCount() > 0) {
-    std::cerr << "Failed to process P4 program on frontend." << std::endl;
-    return 1;
+      P4::FrontEnd frontend;
+      frontend.addDebugHook(hook);
+      program = frontend.run(options, program);
+    } catch (const Util::P4CExceptionBase &err) {
+      ::error(err.what());
+      return 1;
+    }
+    if (program == nullptr || ::errorCount() > 0) {
+      ::error("Failed to process P4 program on frontend.");
+      return 1;
+    }
+
+  } else {
+    //If IR is given, load IR.
+    std::filebuf fb;
+    if (fb.open(options.file, std::ios::in) == nullptr) {
+      ::error("%s: No such file or directory.", options.file);
+      return 1;
+    }
+    std::istream inJson(&fb);
+    JSONLoader jsonFileLoader(inJson);
+    if (jsonFileLoader.json == nullptr) {
+      ::error("%s: Not a valid input file.", options.file);
+      return 1;
+    }
+    program = new IR::P4Program(jsonFileLoader);
+    fb.close();
   }
 
   P4::serializeP4RuntimeIfRequired(program, options);
   if(::errorCount() > 0) {
-    std::cerr << "Failed to generate P4Runtime API." << std::endl;
+    ::error("Failed to generate P4Runtime API.");
+    return 1;
+  }
+
+  PSDN::MidEnd midEnd(options);
+  midEnd.addDebugHook(hook);
+  try {
+    toplevel = midEnd.process(program);
+    if(::errorCount() > 1 || toplevel == nullptr || toplevel->getMain() == nullptr) {
+      ::error("Failed to run midend optimizations.");
+      return 1;
+    }
+    if (options.dumpJsonFile)
+      JSONGenerator(*openFile(options.dumpJsonFile, true), true) << program << std::endl;
+  } catch (const Util::P4CExceptionBase &err) {
+    ::error(err.what());
+    return 1;
+  }
+  if (::errorCount() > 0) {
+    ::error("Failed to run midend optimizations.");
     return 1;
   }
 

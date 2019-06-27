@@ -2,11 +2,13 @@
 
 set (PSDN_SRCS
   main.cpp
+  midend.cpp
   )
 
 set (PSDN_HDRS
   options.h
   version.h
+  midend.h
   )
 
 add_cpplint_files(${CMAKE_CURRENT_SOURCE_DIR} "${PSDN_SRCS};${PSDN_HDRS}")

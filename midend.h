@@ -10,7 +10,7 @@
 
 namespace PSDN {
 
-class PSDNMidEnd : public PassManager {
+class MidEnd : public PassManager {
   public:
     P4::ReferenceMap refMap;
     P4::TypeMap typeMap;
@@ -18,7 +18,7 @@ class PSDNMidEnd : public PassManager {
     P4::ConvertEnums::EnumMapping enumMap;
 
     const IR::ToplevelBlock* process(const IR::P4Program *&program);
-    PSDNMidEnd(CompilerOptions& options);
+    MidEnd(CompilerOptions& options);
 };
 
 }; //namespace PSDN

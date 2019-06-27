@@ -58,12 +58,12 @@ class PSDNEnumOn32Bits : public P4::ChooseEnumRepresentation {
     explicit PSDNEnumOn32Bits() {}
 };
 
-const IR::ToplevelBlock* PSDNMidEnd::process(const IR::P4Program *&program) {
+const IR::ToplevelBlock* MidEnd::process(const IR::P4Program *&program) {
   program = program->apply(*this);
   return toplevel;
 }
 
-PSDNMidEnd::PSDNMidEnd(CompilerOptions& options) {
+MidEnd::MidEnd(CompilerOptions& options) {
 	auto convertEnums = new P4::ConvertEnums(&refMap, &typeMap, new PSDNEnumOn32Bits());
 	auto evaluator = new P4::EvaluatorPass(&refMap, &typeMap);
 	//Add midend optimizations if a program is parsed from frontend.

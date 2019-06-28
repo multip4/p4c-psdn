@@ -3,12 +3,20 @@
 set (PSDN_SRCS
   main.cpp
   midend.cpp
+  backend.cpp
+  programStructure.cpp
+  resourceMap.cpp
+  directMeterMap.cpp
   )
 
 set (PSDN_HDRS
   options.h
   version.h
   midend.h
+  backend.h
+  programStructure.h
+  resourceMap.h
+  directMeterMap.h
   )
 
 add_cpplint_files(${CMAKE_CURRENT_SOURCE_DIR} "${PSDN_SRCS};${PSDN_HDRS}")

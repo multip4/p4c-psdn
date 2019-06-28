@@ -12,13 +12,12 @@
 #include "directMeterMap.h"
 #include "resourceMap.h"
 
-#define PARSER_NAME "p"
-#define PIPE_NAME "map"
-#define DEPARSER_NAME "d"
+#define SUME_SWITCH_TYPE_NAME "SimpleSumeSwitch"
+#define SUME_PARSER_PAR_NAME "p"
+#define SUME_PIPE_PAR_NAME "map"
+#define SUME_DEPARSER_PAR_NAME "d"
 
 namespace PSDN {
-
-using ResourceMap = ordered_map<const IR::Node*, const IR::CompileTimeValue*>;
 
 // Represent compile-time information about a P4 program
 class ProgramStructure {

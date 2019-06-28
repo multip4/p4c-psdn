@@ -41,10 +41,18 @@ namespace PSDN {
     }   
   }
 
+  /**
+   * Find parser, pipe, and deparser
+   */
   bool ProgramStructureBuilder::preorder(const IR::PackageBlock* package) {
-    auto parser = package->getParameterValue(PARSER_NAME);
-    auto pipe = package->getParameterValue(PIPE_NAME);
-    auto deparser = package->getParameterValue(DEPARSER_NAME);
+    if (package->type->name != "SimpleSumeSwitch") {
+      ::warning(ErrorType::WARN_INVALID, "%1%: the type name of main package should be"
+          "SimpleSumeSwitch; are you using a different architecture?", package->type->name);
+    }
+
+    auto parser = package->getParameterValue(SUME_PARSER_PAR_NAME);
+    auto pipe = package->getParameterValue(SUME_PIPE_PAR_NAME);
+    auto deparser = package->getParameterValue(SUME_DEPARSER_PAR_NAME);
     structure->parser = parser->to<IR::ParserBlock>()->container;
     structure->pipe = pipe->to<IR::ControlBlock>()->container;
     structure->deparser = deparser->to<IR::ControlBlock>()->container;

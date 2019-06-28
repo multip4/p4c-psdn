@@ -7,6 +7,7 @@ set (PSDN_SRCS
   programStructure.cpp
   resourceMap.cpp
   directMeterMap.cpp
+  lower.cpp
   )
 
 set (PSDN_HDRS
@@ -17,6 +18,8 @@ set (PSDN_HDRS
   programStructure.h
   resourceMap.h
   directMeterMap.h
+  lower.h
+  controlPolicy.h
   )
 
 add_cpplint_files(${CMAKE_CURRENT_SOURCE_DIR} "${PSDN_SRCS};${PSDN_HDRS}")

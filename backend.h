@@ -28,7 +28,7 @@ class Backend {
       corelib(P4::P4CoreLibrary::instance) { 
         refMap->setIsV1(false); //Assume sume_switch, not a V1 model.
     }
-    void convert(const IR::ToplevelBlock* toplevel);
+    void convert(const IR::ToplevelBlock* _toplevel);
 };
 
 }; //namespace PSDN

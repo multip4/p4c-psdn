@@ -22,6 +22,7 @@
 #include "version.h"
 #include "options.h"
 #include "midend.h"
+#include "backend.h"
 
 int main(int argc, char *const argv[]) {
   setup_gc_logging();
@@ -108,6 +109,20 @@ int main(int argc, char *const argv[]) {
     return 1;
   }
 
+  auto backend = new PSDN::Backend(options, &midEnd.refMap, &midEnd.typeMap, &midEnd.enumMap);
+
+  try {
+    backend->convert(toplevel);
+  } catch (const Util::P4CExceptionBase &err) {
+    ::error(err.what());
+    return 1;
+  }
+  if (::errorCount() > 0) {
+    ::error("Failed to run backends.");
+    return 1;
+  }
+
+  return 0;
 }
 
 

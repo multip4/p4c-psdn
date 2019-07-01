@@ -16,10 +16,10 @@ namespace PSDN {
 void Backend::convert(const IR::ToplevelBlock* _toplevel) {
   CHECK_NULL(_toplevel);
 
+  // Get main & build program structure
   auto main = _toplevel->getMain();
-  if (!main) { ::error("Cannot get main package"); return; }
+  if (!main) { ::error("Cannot get main"); return; }
 
-  // Build program structure
   auto structure = new ProgramStructure();
   auto structureBuilder = new ProgramStructureBuilder(structure);
 
@@ -51,6 +51,33 @@ void Backend::convert(const IR::ToplevelBlock* _toplevel) {
   auto hook = options.getDebugHook();
   simplify.addDebugHook(hook);
   program->apply(simplify);
+
+  if(::errorCount() > 0) { ::error("Cannot apply backend optimizations"); return; }
+
+  // Map IR node to resource blocks
+  toplevel->apply(*new PSDN::ResourceMapBuilder(&structure->resourceMap));
+  if(::errorCount() > 0) { ::error("Cannot generate resource map"); return; }
+
+  // Get main & build program structure
+  main = toplevel->getMain();
+  if (!main) { ::error("Cannot get main"); return; }
+  main->apply(*structureBuilder);
+  program = toplevel->getProgram();
+  program->apply(*structureBuilder);
+  if(::errorCount() > 0) { ::error("Cannot generate program structure"); return; }
+
+  // Inspect enums for debugging purpose
+  for (const auto &enums : *enumMap) {
+    auto enumName = enums.first->getName();
+    for (const auto &enumEntry : *enums.second) {
+      std::cout << "Find Enum: " << enumName << "." << enumEntry.first 
+        << " = " << enumEntry.second << std::endl;
+    }
+  }
+
+  // Assume that enum expressions are converted to a constant
+  if(enumMap->size() != 0){ ::error("Enum exists"); return; }
+
 }
 
 }; //namespace PSDN

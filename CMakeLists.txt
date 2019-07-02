@@ -20,6 +20,7 @@ set (PSDN_HDRS
   directMeterMap.h
   lower.h
   controlPolicy.h
+  conversionContext.h
   )
 
 add_cpplint_files(${CMAKE_CURRENT_SOURCE_DIR} "${PSDN_SRCS};${PSDN_HDRS}")

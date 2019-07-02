@@ -6,10 +6,14 @@
 #define PSDN_BACKEND_H
 
 #include "options.h"
+#include "conversionContext.h"
 
 #include "ir/ir.h"
 #include "midend/convertEnums.h"
 #include "frontends/p4/coreLibrary.h"
+
+#include <iostream>
+#include <fstream>
 
 namespace PSDN {
 
@@ -21,6 +25,12 @@ class Backend {
     P4::ConvertEnums::EnumMapping* enumMap;
     P4::P4CoreLibrary& corelib;
     const IR::ToplevelBlock* toplevel;
+
+    // Conversion Context
+    ConversionContext *ctxt;
+
+    // Final output
+    std::ofstream output;
 
     Backend(PSDNOptions& options, P4::ReferenceMap* refMap, 
         P4::TypeMap* typeMap, P4::ConvertEnums::EnumMapping* enumMap) :

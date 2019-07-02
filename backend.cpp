@@ -66,17 +66,47 @@ void Backend::convert(const IR::ToplevelBlock* _toplevel) {
   program->apply(*structureBuilder);
   if(::errorCount() > 0) { ::error("Cannot generate program structure"); return; }
 
-  // Inspect enums for debugging purpose
+  // Generate conversion context
+  ctxt = new ConversionContext(refMap, typeMap, toplevel, structure);
+
+  // Open filestream
+  output.open(options.outputFile);
+
+  // Convert enums into constant
+  // 
+  // enum X { a, b };
+  //
+  // const ENUM_X_a = 0;
+  // const ENUM_X_b = 1;
   for (const auto &enums : *enumMap) {
+    std::map<cstring, cstring>* enumString  = new std::map<cstring, cstring>;
     auto enumName = enums.first->getName();
     for (const auto &enumEntry : *enums.second) {
-      std::cout << "Find Enum: " << enumName << "." << enumEntry.first 
-        << " = " << enumEntry.second << std::endl;
+      std::string str =  "ENUM_" + enumName + "_" + enumEntry.first;
+      output << "const " << str << " = " << enumEntry.second << ";" << std::endl;
+      enumString->emplace(enumEntry.first, str.c_str()); 
     }
+    ctxt->enumStringMap.emplace(enums.first, enumString);
   }
+  output << std::endl;
 
-  // Assume that enum expressions are converted to a constant
-  if(enumMap->size() != 0){ ::error("Enum exists"); return; }
+  // Convert error codes into constant
+  //
+  // error { a, b };
+  //
+  // const ERROR_a = 1;
+  // const ERROR_b = 2;
+  for (const auto &errorCode : structure->errorCodeMap) {
+    auto name = errorCode.first->toString();
+    std::string str = "ERROR_" + name;
+    output << "const " << str << " = " << errorCode.second << ";" << std::endl;
+    ctxt->errorStringMap.emplace(errorCode.first, str);
+  }
+  output << std::endl;
+  
+
+
+  output.close();
 
 }
 

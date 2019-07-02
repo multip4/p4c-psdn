@@ -8,6 +8,7 @@ set (PSDN_SRCS
   resourceMap.cpp
   directMeterMap.cpp
   lower.cpp
+  expressionConverter.cpp
   )
 
 set (PSDN_HDRS
@@ -19,6 +20,7 @@ set (PSDN_HDRS
   resourceMap.h
   directMeterMap.h
   lower.h
+  expressionConverter.h
   controlPolicy.h
   conversionContext.h
   )

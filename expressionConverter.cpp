@@ -35,7 +35,13 @@ void ExpressionConverter::postorder(const IR::BoolLiteral* expression) {
   mapExpression(expression,str);
 }
 
+void ExpressionConverter::postorder(const IR::MethodCallExpression* expression) {
+  auto instance = P4::MethodInstance::resolve(expression, refMap, typeMap);
+}
+
+/// Ther is no type casting in SDNet
 void ExpressionConverter::postorder(const IR::Cast* expression) {
+  /*
   std::string* str = nullptr;
   // Get original type from expression, and destination type from destType.
   int originalWidth = expression->expr->type->width_bits();
@@ -43,8 +49,10 @@ void ExpressionConverter::postorder(const IR::Cast* expression) {
   // If destination type is larger than original type, extend with zero.
   if (destWidth > originalWidth) {
     str = new std::string(std::to_string(destWidth-originalWidth));
-    str->append("w ++ ");
+    str->append();
   }
+  */
+  std::string* str = new std::string("");
   mapExpression(expression,str);
 }
 

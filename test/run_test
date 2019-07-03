@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Copyright 2019 Seungbin Song
+
+P4C_PSDN_PATH=~/p4/p4c/build/extensions/p4c-psdn/p4c-psdn
+P4C_SDNET_PATH=/opt/Xilinx/SDNet/2018.1.1/bin/p4c-sdnet
+
+P4_INCLUDE_PATH=/opt/Xilinx/SDNet/2018.1.1/data/p4include/
+
+print_help() {
+  echo "usage: run_test [p4_compiler] [test_file]"
+  echo "    [p4_compiler]: choose 'p4c-psdn' or 'p4c-sdnet'"
+  echo "    [test_file]: put your test file; otherwise test all"
+  exit
+}
+
+if [[ -z $1 ]] || [[ $1 == "--help" ]]; then
+  print_help
+fi
+
+if [[ $1 == "p4c-psdn" ]]; then
+  P4C=$P4C_PSDN_PATH
+elif [[ $1 == "p4c-sdnet" ]]; then
+  P4C=$P4C_SDNET_PATH
+else
+  print_help
+fi
+
+
+if [[ -z $2 ]]; then
+  for testfile in *.p4; do
+    ERROR=$( $P4C "$testfile" "-I/$P4_INCLUDE_PATH" "-o $(basename "$testfile" .p4).sdnet" 2>&1 >/dev/null | grep 'error' )
+    if [[ ! -z $ERROR ]]; then
+      echo "[ERROR] $testfile has compile errors on $1"
+      $P4C "$testfile" "-I/$P4_INCLUDE_PATH" "-o $(basename "$testfile" .p4).sdnet"
+      exit
+    fi
+  done
+else
+  $P4C "$2" "-I/$P4_INCLUDE_PATH" "-o $(basename "$2" .p4).sdnet"
+fi

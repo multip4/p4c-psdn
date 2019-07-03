@@ -17,6 +17,26 @@
 namespace PSDN {
 
 
+cstring stringRepr(mpz_class value, unsigned bytes) {
+	cstring sign = ""; 
+	const char* r;
+	cstring filler = ""; 
+	if (value < 0) {
+		value =- value;
+		r = mpz_get_str(nullptr, 16, value.get_mpz_t());
+		sign = "-";
+	} else {
+		r = mpz_get_str(nullptr, 16, value.get_mpz_t());
+	}   
+
+	if (bytes > 0) {
+		int digits = bytes * 2 - strlen(r);
+		BUG_CHECK(digits >= 0, "Cannot represent %1% on %2% bytes", value, bytes);
+		filler = std::string(digits, '0');
+	}   
+	return sign + "0x" + filler + r;
+}
+
 class ExpressionConverter : public Inspector {
   P4::ReferenceMap* refMap;
   P4::TypeMap* typeMap;
@@ -51,13 +71,13 @@ class ExpressionConverter : public Inspector {
 	void mapExpression(const IR::Expression* e, std::string* str);
 
 	void postorder(const IR::BoolLiteral* expression) override;
-// 	void postorder(const IR::MethodCallExpression* expression) override;
+ 	void postorder(const IR::MethodCallExpression* expression) override;
  	void postorder(const IR::Cast* expression) override;
 // 	void postorder(const IR::Slice* expression) override;
 // 	void postorder(const IR::AddSat* expression) override;
 // 	void postorder(const IR::SubSat* expression) override;
-// 	void postorder(const IR::Constant* expression) override;
-// 	void postorder(const IR::ArrayIndex* expression) override;
+ 	void postorder(const IR::Constant* expression) override;
+ 	void postorder(const IR::ArrayIndex* expression) override;
 // 	void postorder(const IR::Member* expression) override;
 // 	void postorder(const IR::Mux* expression) override;
 // 	void postorder(const IR::IntMod* expression) override;

@@ -39,6 +39,7 @@ void ExpressionConverter::postorder(const IR::BoolLiteral* expression) {
 
 /// TODO: lookahead() / extract() needs method update & increment_offset.
 void ExpressionConverter::postorder(const IR::MethodCallExpression* expression) {
+  (void)expression;
 }
 
 /// Convert cast: there is no type casting in SDNet.
@@ -91,5 +92,67 @@ void ExpressionConverter::postorder(const IR::ArrayIndex* expression) {
   mapExpression(expression, str);
 }
 
+/// Non-null if expression refers to a parameter from the enclosing control
+const IR::Parameter* 
+ExpressionConverter::enclosingParamReference(const IR::Expression* expression) {
+  CHECK_NULL(expression);
+  if (!expression->is<IR::PathExpression>())
+    return nullptr;
 
-};
+  auto pe = expression->to<IR::PathExpression>();
+  auto decl = refMap->getDeclaration(pe->path, true);
+  auto param = decl->to<IR::Parameter>();
+
+  if (param !=nullptr && structure->nonActionParams.count(param) > 0)
+    return param;
+  return nullptr;
+}
+
+void ExpressionConverter::postorder(const IR::Member* expression) {
+  std::string* str;
+
+  auto parentType = typeMap->getType(expression->expr, true);
+  cstring fieldName = expression->member.name;
+  auto type = typeMap->getType(expression, true);
+
+  if (parentType->is<IR::Type_StructLike>()) {
+    auto st = parentType->to<IR::Type_StructLike>();
+    auto field = st->getField(expression->member);
+    if (field != nullptr)
+      fieldName = field->controlPlaneName();
+  }
+
+  // Handle error types: find declaration in ctxt->errorStringMap and convert it
+  if (type->is<IR::Type_Error>() && expression->expr->is<IR::TypeNameExpression>()) {
+    auto decl = type->to<IR::Type_Error>()->getDeclByName(expression->member.name);
+    auto converted = ctxt->errorStringMap.at(decl);
+    str = new std::string(converted);
+    mapExpression(expression, str);
+    return;
+  }
+  
+  // TODO: operations on header stacks & header unions
+  if (parentType->is<IR::Type_Struct>() || parentType->is<IR::Type_Header>()) {
+    auto param = enclosingParamReference(expression);
+    auto parentName = param->getName().name;
+    str = new std::string(parentName + "." + fieldName);
+    mapExpression(expression, str);
+    return;
+  }
+
+  if (expression->expr->is<IR::Member>()) {
+    auto l = get(expression->expr);
+    str = new std::string(*l + "." + fieldName);
+    mapExpression(expression, str);
+    return;
+  }
+
+  ::error(ErrorType::ERR_UNSUPPORTED_ON_TARGET, "Cannot convert member expression", expression);
+}
+
+
+
+
+
+
+}; //namespace PSDN

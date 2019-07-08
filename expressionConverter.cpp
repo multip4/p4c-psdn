@@ -151,6 +151,14 @@ void ExpressionConverter::postorder(const IR::Member* expression) {
 }
 
 
+void ExpressionConverter::dumpExpressionMap() {
+  std::cout << "Dump Expressions" << std::endl;
+  for (auto i : map) {
+    std::cout << "\t";
+    i.first->dbprint(std::cout);
+    std::cout << " to " << i.second << std::endl;
+  }
+}
 
 
 

@@ -9,6 +9,7 @@ set (PSDN_SRCS
   directMeterMap.cpp
   lower.cpp
   expressionConverter.cpp
+  headerConverter.cpp
   )
 
 set (PSDN_HDRS
@@ -23,6 +24,7 @@ set (PSDN_HDRS
   expressionConverter.h
   controlPolicy.h
   conversionContext.h
+  headerConverter.h
   )
 
 add_cpplint_files(${CMAKE_CURRENT_SOURCE_DIR} "${PSDN_SRCS};${PSDN_HDRS}")

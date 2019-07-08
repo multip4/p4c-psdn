@@ -6,6 +6,8 @@
 #include "programStructure.h"
 #include "lower.h"
 #include "controlPolicy.h"
+#include "expressionConverter.h"
+#include "headerConverter.h"
 
 #include "lib/null.h"
 #include "frontends/p4/simplify.h"
@@ -103,7 +105,12 @@ void Backend::convert(const IR::ToplevelBlock* _toplevel) {
     ctxt->errorStringMap.emplace(errorCode.first, str);
   }
   output << std::endl;
-  
+
+  //auto expConverter = new ExpressionConverter(refMap, typeMap, structure, ctxt);
+
+  auto headerConverter = new HeaderConverter(ctxt);
+  program->apply(*headerConverter);
+
 
 
   output.close();

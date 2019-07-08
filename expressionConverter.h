@@ -92,6 +92,11 @@ class ExpressionConverter : public Inspector {
 // 	void postorder(const IR::TypeNameExpression* expression) override;
 // 	void postorder(const IR::Expression* expression) override;
 
+  /**
+   * Dump expression mapping for debugging purpose
+   */
+  void dumpExpressionMap();
+
 };
 
 }; //namespace PSDN

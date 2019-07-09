@@ -10,6 +10,7 @@
 #include "headerConverter.h"
 
 #include "lib/null.h"
+#include "lib/cstring.h"
 #include "frontends/p4/simplify.h"
 #include "frontends/p4/unusedDeclarations.h"
 
@@ -84,7 +85,7 @@ void Backend::convert(const IR::ToplevelBlock* _toplevel) {
     std::map<cstring, cstring>* enumString  = new std::map<cstring, cstring>;
     auto enumName = enums.first->getName();
     for (const auto &enumEntry : *enums.second) {
-      std::string str =  "ENUM_" + enumName + "_" + enumEntry.first;
+      cstring str =  "ENUM_" + enumName + "_" + enumEntry.first;
       output << "const " << str << " = " << enumEntry.second << ";" << std::endl;
       enumString->emplace(enumEntry.first, str.c_str()); 
     }
@@ -100,7 +101,7 @@ void Backend::convert(const IR::ToplevelBlock* _toplevel) {
   // const ERROR_b = 2;
   for (const auto &errorCode : structure->errorCodeMap) {
     auto name = errorCode.first->toString();
-    std::string str = "ERROR_" + name;
+    cstring str = "ERROR_" + name;
     output << "const " << str << " = " << errorCode.second << ";" << std::endl;
     ctxt->errorStringMap.emplace(errorCode.first, str);
   }

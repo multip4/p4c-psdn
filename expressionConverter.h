@@ -8,6 +8,7 @@
 #include <string>
 
 #include "ir/ir.h"
+#include "lib/cstring.h"
 #include "frontends/common/resolveReferences/referenceMap.h"
 #include "frontends/p4/coreLibrary.h"
 #include "frontends/p4/typeMap.h"
@@ -46,7 +47,7 @@ class ExpressionConverter : public Inspector {
   P4::P4CoreLibrary& coreLibrary;
   
   /// Save result into map
-  std::map<const IR::Expression*, std::string*> map;
+  std::map<const IR::Expression*, cstring> map;
   
   public:
   ExpressionConverter(P4::ReferenceMap* refMap, P4::TypeMap* typeMap,
@@ -67,11 +68,11 @@ class ExpressionConverter : public Inspector {
    * @param e   expression to convert
    * 
    */
-  std::string* convert(const IR::Expression* e);
+  cstring convert(const IR::Expression* e);
 
-  std::string* get(const IR::Expression* e) const;
+  cstring get(const IR::Expression* e) const;
 
-	void mapExpression(const IR::Expression* e, std::string* str);
+	void mapExpression(const IR::Expression* e, cstring str);
 
 	void postorder(const IR::BoolLiteral* expression) override;
  	void postorder(const IR::MethodCallExpression* expression) override;

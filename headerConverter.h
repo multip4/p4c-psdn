@@ -19,11 +19,6 @@ class HeaderConverter : public Inspector {
     ConversionContext* ctxt;
     std::set<cstring> visitedHeaders;
 
-    //void addHeaderType(const IR::Type_StructLike* st);
-    //void addHeaderField(const cstring& header, const cstring& name, int size, bool isSigned);
-    
-    //void addTypesAndInstances(const IR::Type_StructLike* type, bool meta);
-    //void addHeaderStacks(const IR::Type_Struct* type);
     bool isHeaders(const IR::Type_StructLike* st);
 
     void addHeader(const IR::Type_StructLike* st);
@@ -40,7 +35,7 @@ class HeaderConverter : public Inspector {
     Visitor::profile_t init_apply(const IR::Node* node) override;
     
     cstring getDefinition(const IR::Type_StructLike* st, bool withName);
-    std::string* emitTypeDef();
+    cstring emitTypeDef();
 };
 
 

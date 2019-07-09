@@ -112,6 +112,8 @@ void Backend::convert(const IR::ToplevelBlock* _toplevel) {
   auto headerConverter = new HeaderConverter(ctxt);
   program->apply(*headerConverter);
 
+  output << headerConverter->emitTypeDef() << std::endl;
+
 
 
   output.close();

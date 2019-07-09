@@ -42,7 +42,14 @@ void HeaderConverter::mapStruct(const IR::Type_StructLike* st, cstring str) {
 }
 
 void HeaderConverter::addStruct(const IR::Type_StructLike* st) {
+  if (visitedHeaders.find(st->getName()) != visitedHeaders.end())
+    return;
+
   cstring str = "{\n";
+  // If this type is header, add isValid.
+  if (st->is<IR::Type_Header>()) {
+    str += "\tisValid : 1,\n";
+  }
   for (auto f : st->fields) {
     auto ft = ctxt->typeMap->getType(f, true);
     if (ft->is<IR::Type_StructLike>()) {
@@ -62,25 +69,58 @@ void HeaderConverter::addStruct(const IR::Type_StructLike* st) {
     else
       str += ",\n";
   }
-  std::cout << st->getName() << " " << str << std::endl;
+  //std::cout << st->getName() << " " << str << std::endl;
   mapStruct(st, str);
+  visitedHeaders.emplace(st->getName());
+}
+
+void HeaderConverter::addHeader(const IR::Type_StructLike* st) {
+  if (visitedHeaders.find(st->getName()) != visitedHeaders.end())
+    return;
+
+  cstring str = "{\n";
+  for (auto f : st->fields) {
+    auto ft = ctxt->typeMap->getType(f, true);
+    auto fst = ft->to<IR::Type_StructLike>();
+    addStruct(fst);
+    str += "\t" + f->name + " : " + fst->getName().name;
+    if (f == *(st->fields.rbegin()))
+      str += "\n}\n";
+    else
+      str += ",\n";
+  }
+  //std::cout << st->getName() << " " << str << std::endl;
+  mapStruct(st, str);
+  visitedHeaders.emplace(st->getName());
 }
 
 bool HeaderConverter::preorder(const IR::Parameter* param) {
   auto type = ctxt->typeMap->getType(param->getNode(), true);
   if (type->is<IR::Type_Struct>()) {
     auto st = type->to<IR::Type_Struct>();
-    if (visitedHeaders.find(st->getName()) != visitedHeaders.end())
-      return false;
-    else
-      visitedHeaders.emplace(st->getName());
     if (isHeaders(st)) { //header
-      //addHeader(st);
+      addHeader(st);
     } else { //metadata
       addStruct(st);
     }
   }
   return false;
+}
+
+cstring HeaderConverter::getDefinition(const IR::Type_StructLike* st, bool withName) {
+  cstring str = (withName) ? "struct " + st->getName() + " " : "struct ";
+  auto result = ::get(map, st);
+  if (result == nullptr)
+    BUG("%1%: There is no definition mapping", st);
+  str += result;
+  return str;
+}
+
+cstring HeaderConverter::emitTypeDef() {
+  cstring str = "";
+  for (auto st : map)
+    str += getDefinition(st.first, true);
+  return str;
 }
 
 

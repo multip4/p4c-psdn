@@ -5,14 +5,17 @@
 #include "backend.h"
 #include "programStructure.h"
 #include "lower.h"
+#include "annotationParser.h"
 #include "controlPolicy.h"
 #include "expressionConverter.h"
 #include "headerConverter.h"
+#include "parserConverter.h"
 
 #include "lib/null.h"
 #include "lib/cstring.h"
 #include "frontends/p4/simplify.h"
 #include "frontends/p4/unusedDeclarations.h"
+#include "frontends/p4/parseAnnotations.h"
 
 namespace PSDN {
 
@@ -46,6 +49,7 @@ void Backend::convert(const IR::ToplevelBlock* _toplevel) {
         new PSDN::ProcessControls(&structure->pipelineControls)),
     new P4::SimplifyControlFlow(refMap, typeMap),
     new P4::RemoveAllUnusedDeclarations(refMap),
+    new P4::ParseAnnotationBodies(new AnnotationParser(), typeMap),
     evaluator,
     new VisitFunctor([this, evaluator, structure]() {
         toplevel = evaluator->getToplevelBlock(); }),
@@ -113,6 +117,9 @@ void Backend::convert(const IR::ToplevelBlock* _toplevel) {
   program->apply(*headerConverter);
 
   output << headerConverter->emitTypeDef() << std::endl;
+
+  auto parserConverter = new ParserConverter(ctxt);
+  program->apply(*parserConverter);
 
 
 

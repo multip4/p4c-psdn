@@ -8,8 +8,11 @@ set (PSDN_SRCS
   resourceMap.cpp
   directMeterMap.cpp
   lower.cpp
+  annotationParser.cpp
   expressionConverter.cpp
   headerConverter.cpp
+  parserConverter.cpp
+  sdnetProgram.cpp
   )
 
 set (PSDN_HDRS
@@ -21,10 +24,13 @@ set (PSDN_HDRS
   resourceMap.h
   directMeterMap.h
   lower.h
+  annotationParser.h
   expressionConverter.h
   controlPolicy.h
   conversionContext.h
   headerConverter.h
+  parserConverter.h
+  sdnetProgram.h
   )
 
 add_cpplint_files(${CMAKE_CURRENT_SOURCE_DIR} "${PSDN_SRCS};${PSDN_HDRS}")

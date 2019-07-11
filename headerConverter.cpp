@@ -65,7 +65,7 @@ void HeaderConverter::addStruct(const IR::Type_StructLike* st) {
       return;
     }
     if (f == *(st->fields.rbegin()))
-      str += "\n}\n";
+      str += "\n}";
     else
       str += ",\n";
   }
@@ -85,7 +85,7 @@ void HeaderConverter::addHeader(const IR::Type_StructLike* st) {
     addStruct(fst);
     str += "\t" + f->name + " : " + fst->getName().name;
     if (f == *(st->fields.rbegin()))
-      str += "\n}\n";
+      str += "\n}";
     else
       str += ",\n";
   }
@@ -119,7 +119,7 @@ cstring HeaderConverter::getDefinition(const IR::Type_StructLike* st, bool withN
 cstring HeaderConverter::emitTypeDef() {
   cstring str = "";
   for (auto st : map)
-    str += getDefinition(st.first, true);
+    str += getDefinition(st.first, true) + "\n";
   return str;
 }
 

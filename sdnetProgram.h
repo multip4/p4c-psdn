@@ -12,9 +12,8 @@ namespace PSDN {
 
 class SDNetProgram {
   public:
-    cstring addIndent(cstring str, unsigned n);
-    cstring addIndent(cstring str);
-    cstring generateTuple(cstring name, cstring inout, cstring content);
+    cstring addIndent(cstring str, unsigned n = 1);
+    cstring generateTuple(cstring name, cstring direction, cstring content);
     unsigned getMaxPacketRegion(const IR::Type_ArchBlock* block);
 };
 

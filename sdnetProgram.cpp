@@ -6,10 +6,10 @@
 
 namespace PSDN {
 
-cstring SDNetProgram::generateTuple(cstring name, cstring inout, cstring content) {
-  cstring str = "class " + name + "::Tuple(" + inout + ") {\n";
-  str += addIndent(content);
-  str += "}\n";
+cstring SDNetProgram::generateTuple(cstring name, cstring direction, cstring body) {
+  cstring str = "class " + name + "::Tuple(" + direction + ") {\n";
+  str += addIndent(body);
+  str += "\n}\n";
   return str;
 }
 
@@ -19,10 +19,6 @@ cstring SDNetProgram::addIndent(cstring str, unsigned n) {
     indent += "\t";
   }
   return indent + str.replace("\n","\n"+indent);
-}
-
-cstring SDNetProgram::addIndent(cstring str) {
-  return addIndent(str,1);
 }
 
 unsigned SDNetProgram::getMaxPacketRegion(const IR::Type_ArchBlock* block) {

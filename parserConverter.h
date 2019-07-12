@@ -19,12 +19,20 @@ class ParserConverter : public Inspector {
     HeaderConverter* hconv;
     P4::P4CoreLibrary& corelib;
 
+    cstring classDef;
+    cstring tupleDef;
+    cstring tupleInst;
+
+    std::map<const IR::Declaration*, cstring> localvarMap;
+
   public:
     bool preorder(const IR::P4Parser* parser) override;
-    ParserConverter(ConversionContext* ctxt, HeaderConverter* hconv) : ctxt(ctxt), 
-      hconv(hconv), corelib(P4::P4CoreLibrary::instance) {
+    ParserConverter(ConversionContext* ctxt, HeaderConverter* hconv) : 
+      ctxt(ctxt), hconv(hconv), corelib(P4::P4CoreLibrary::instance), 
+      classDef(""), tupleDef(""), tupleInst("") {
       setName("ParserConverter");
     }
+    cstring emitParser();
 };
 
 

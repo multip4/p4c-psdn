@@ -32,23 +32,47 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
       }
     } else if (pt->is<IR::Type_StructLike>()) {
       auto st = pt->to<IR::Type_StructLike>();
-      auto sdnet = SDNetProgram();
       auto name = p->getName().name;
       std::ostringstream os;
       os << p->direction;
       cstring direction = os.str();
       auto body = hconv->getDefinition(st, false);
-      cstring tuple = sdnet.generateTuple(name, direction, body);
-      std::cout << tuple << std::endl;
+      tupleDef += sdnet.generateTuple(name + "_t", direction, body);
+      tupleInst += "\t" + name + "_t " + name + ";\n";
     } else {
       ::error(ErrorType::ERR_INVALID, "Parameter is not a packet_in or struct type.", pt);
+      return false;
     }
   }
 
+  // Convert local variables.
+  std::vector<cstring> localDefs;
+  for (auto localvar : parser->parserLocals) {
+    if (auto inst = localvar->to<IR::P4ValueSet>()) {
+      auto bitwidth = inst->elementType->width_bits();
+      auto name = inst->controlPlaneName();
+      localDefs.push_back(cstring(name + " : " + std::to_string(bitwidth)));
+      localvarMap.emplace(localvar, "local." + name);
+    }
+  }
+  cstring localBody = "struct {\n";
+  for (auto l : localDefs) {
+    if (l == *(localDefs.rbegin()))
+      localBody += "\t" + l + "\n}";
+    else
+      localBody += "\t" + l + ",\n";
+  }
+  tupleDef += sdnet.generateTuple("local_t","",localBody);
+  tupleInst += "\tlocal_t local;\n";
+
+  // TODO: Convert parser states.
   
 
   return false;
 }
 
+cstring ParserConverter::emitParser() {
+  return classDef + tupleDef + tupleInst;
+}
 
 }; //namespace PSDN

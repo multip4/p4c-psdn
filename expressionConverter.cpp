@@ -105,6 +105,7 @@ ExpressionConverter::enclosingParamReference(const IR::Expression* expression) {
 
   if (param !=nullptr && structure->nonActionParams.count(param) > 0)
     return param;
+
   return nullptr;
 }
 
@@ -133,7 +134,8 @@ void ExpressionConverter::postorder(const IR::Member* expression) {
   
   // TODO: operations on header stacks & header unions
   if (parentType->is<IR::Type_Struct>() || parentType->is<IR::Type_Header>()) {
-    auto param = enclosingParamReference(expression);
+    auto param = enclosingParamReference(expression->expr);
+    CHECK_NULL(param);
     auto parentName = param->getName().name;
     str = parentName + "." + fieldName;
     mapExpression(expression, str);

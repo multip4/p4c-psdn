@@ -10,6 +10,17 @@
 
 namespace PSDN {
 
+class SDNetSection {
+  public:
+    cstring structDecl;
+    cstring mapDecl;
+    cstring methodUpdate;
+    cstring methodMove;
+    cstring methodIncrement;
+    SDNetSection() : structDecl(""), mapDecl(""), 
+      methodUpdate(""), methodMove(""), methodIncrement("") {}
+};
+
 class SDNetProgram {
   public:
     cstring addIndent(cstring str, unsigned n = 1);

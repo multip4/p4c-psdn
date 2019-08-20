@@ -111,14 +111,14 @@ void Backend::convert(const IR::ToplevelBlock* _toplevel) {
   }
   output << std::endl;
 
-  //auto expConverter = new ExpressionConverter(refMap, typeMap, structure, ctxt);
+  auto econv = new ExpressionConverter(refMap, typeMap, structure, ctxt);
 
   auto hconv = new HeaderConverter(ctxt);
   program->apply(*hconv);
 
   output << hconv->emitTypeDef() << std::endl;
 
-  auto parserConverter = new ParserConverter(ctxt, hconv);
+  auto parserConverter = new ParserConverter(ctxt, hconv, econv);
   program->apply(*parserConverter);
 
 

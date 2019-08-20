@@ -66,6 +66,72 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
   tupleInst += "\tlocal_t local;\n";
 
   // TODO: Convert parser states.
+  auto numStates = parser->states.size();
+  for (auto state : parser->states) {
+    if (state->name == IR::ParserState::reject) {
+      cstring str = "class reject::Section(" + std::to_string(numStates) + ") {\n";
+      str += "\tmethod move_to_section = done(0);\n";
+      str += "\tmethod increment_offset = 0;\n";
+      str += "}\n";
+      classDef += sdnet.addIndent(str);
+    } else if (state->name == IR::ParserState::accept) {
+      cstring str = "class accept::Section(" + std::to_string(numStates+1) + ") {\n";
+      str += "\tmethod move_to_section = done(0);\n";
+      str += "\tmethod increment_offset = 0;\n";
+      str += "}\n";
+      classDef += sdnet.addIndent(str);
+    } else {
+      // Convert statements.
+      SDNetSection section;
+      for (auto s : state->components) {
+        if (s->is<IR::AssignmentStatement>()) {
+          auto as = s->to<IR::AssignmentStatement>();
+          auto type = ctxt->typeMap->getType(as->left, true);
+          auto l = econv->convert(as->left);
+          auto r = econv->convert(as->right);
+          section.methodUpdate += l + " = " + r + ";\n";
+          std::cout << section.methodUpdate << std::endl;
+        }
+        else if (s->is<IR::MethodCallStatement>()) {
+          auto mc = s->to<IR::MethodCallStatement>()->methodCall;
+          int numArgs = mc->arguments->size();
+          auto minst = P4::MethodInstance::resolve(mc, ctxt->refMap, ctxt->typeMap);
+          if (minst->is<P4::ExternMethod>()) {
+            auto m = minst->to<P4::ExternMethod>();
+            if (m->method->name.name == corelib.packetIn.extract.name) {
+              if (numArgs != 1) {
+                ::error(ErrorType::ERR_UNSUPPORTED_ON_TARGET,
+                    "%1%: unknown # of arguments in extract method", mc);
+                return false;
+              }
+              auto arg = mc->arguments->at(0);
+              auto argtype = ctxt->typeMap->getType(arg->expression, true);
+              if (!argtype->is<IR::Type_Header>()) {
+                ::error(ErrorType::ERR_INVALID,
+                    "%1%: extract only accepts arguments with header types, not %2%",
+                    arg, argtype);
+                return false;
+              }
+              if (auto mem = arg->expression->to<IR::Member>()) {
+                auto baseType = ctxt->typeMap->getType(mem->expr, true);
+                if (baseType->is<IR::Type_Stack>()) {
+                  ::error(ErrorType::ERR_UNSUPPORTED_ON_TARGET,
+                      "%1%: type stack is unsupported", mem->expr);
+                } else if (baseType->is<IR::Type_HeaderUnion>()) {
+                  ::error(ErrorType::ERR_UNSUPPORTED_ON_TARGET,
+                      "%1%: header union is unsupported", mem->expr);
+                } else {
+                  std::cout << mem->member << std::endl;
+                }
+              }
+
+            }
+          }
+        }
+      }
+
+    }
+  }
   
 
   return false;

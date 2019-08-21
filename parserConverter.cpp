@@ -98,6 +98,8 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
           auto minst = P4::MethodInstance::resolve(mc, ctxt->refMap, ctxt->typeMap);
           if (minst->is<P4::ExternMethod>()) {
             auto m = minst->to<P4::ExternMethod>();
+            
+            // Conversion of extract method
             if (m->method->name.name == corelib.packetIn.extract.name) {
               if (numArgs != 1) {
                 ::error(ErrorType::ERR_UNSUPPORTED_ON_TARGET,
@@ -146,20 +148,18 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
                   
                   // method update
                   auto memberStr = mem->toString();
+                  section.methodUpdate += memberStr + "." + "isValid = 1,\n";
                   for (auto field : mt->fields) {
                     auto fieldStr = field->toString();
-                    if (fieldStr == "isValid") {
-                      section.methodUpdate += memberStr + "." + fieldStr + " = " + "1,\n";
-                    } else {
-                      section.methodUpdate += memberStr + "." + fieldStr + " = " + fieldStr + ",\n";
-                    }
+                    section.methodUpdate += memberStr + "." + fieldStr + " = " + fieldStr + ",\n";
                   }
                   std::cout << section.structDecl << std::endl;
                   std::cout << section.methodUpdate << std::endl;
                 }
               }
+            } // end of extract conversion
 
-            }
+
           }
         }
       }

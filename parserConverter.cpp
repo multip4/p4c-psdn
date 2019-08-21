@@ -44,6 +44,10 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
       return false;
     }
   }
+  // Add extract tuple.
+  tupleDef += sdnet.generateTuple("TopParser_extracts_t", "out", "struct { size : 32 }");
+  tupleInst += "\t TopParser_extracts_t TopParser_extracts;\n";
+  
 
   // Convert local variables.
   std::vector<cstring> localDefs;
@@ -99,7 +103,7 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
           if (minst->is<P4::ExternMethod>()) {
             auto m = minst->to<P4::ExternMethod>();
             
-            // Conversion of extract method
+            // Convert extract method.
             if (m->method->name.name == corelib.packetIn.extract.name) {
               if (numArgs != 1) {
                 ::error(ErrorType::ERR_UNSUPPORTED_ON_TARGET,
@@ -141,23 +145,31 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
                     return false;
                   }
 
-                  // get struct definition and delete 'isValid'.
+                  // Get struct definition and delete 'isValid'.
                   auto str = std::string(hconv->getDefinition(mt,false));
                   auto structDecl = cstring(str.replace(str.find("\tisValid : 1,\n"), 14, ""));
                   section.structDecl += structDecl;
                   
-                  // method update
+                  // Add to method update.
+                  int size = 0;
                   auto memberStr = mem->toString();
                   section.methodUpdate += memberStr + "." + "isValid = 1,\n";
                   for (auto field : mt->fields) {
                     auto fieldStr = field->toString();
                     section.methodUpdate += memberStr + "." + fieldStr + " = " + fieldStr + ",\n";
+                    auto fieldType = field->type->to<IR::Type_Bits>();
+                    size += fieldType->size;
                   }
+                  // Increase extract size.
+                  section.methodUpdate += "TopParser_extracts.size = (TopParser_extracts.size + "
+                    + std::to_string(size) + "),\n";
+                  section.methodIncrement += std::to_string(size) + ";";
+
                   std::cout << section.structDecl << std::endl;
                   std::cout << section.methodUpdate << std::endl;
                 }
               }
-            } // end of extract conversion
+            } // End of extract conversion.
 
 
           }

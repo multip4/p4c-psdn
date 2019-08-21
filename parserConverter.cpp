@@ -86,10 +86,10 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
       for (auto s : state->components) {
         if (s->is<IR::AssignmentStatement>()) {
           auto as = s->to<IR::AssignmentStatement>();
-          auto type = ctxt->typeMap->getType(as->left, true);
+          //auto type = ctxt->typeMap->getType(as->left, true);
           auto l = econv->convert(as->left);
           auto r = econv->convert(as->right);
-          section.methodUpdate += l + " = " + r + ";\n";
+          section.methodUpdate += l + " = " + r + ",\n";
           std::cout << section.methodUpdate << std::endl;
         }
         else if (s->is<IR::MethodCallStatement>()) {
@@ -114,14 +114,48 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
               }
               if (auto mem = arg->expression->to<IR::Member>()) {
                 auto baseType = ctxt->typeMap->getType(mem->expr, true);
-                if (baseType->is<IR::Type_Stack>()) {
+                if (baseType->is<IR::Type_Stack>() || baseType->is<IR::Type_HeaderUnion>()) {
                   ::error(ErrorType::ERR_UNSUPPORTED_ON_TARGET,
-                      "%1%: type stack is unsupported", mem->expr);
-                } else if (baseType->is<IR::Type_HeaderUnion>()) {
-                  ::error(ErrorType::ERR_UNSUPPORTED_ON_TARGET,
-                      "%1%: header union is unsupported", mem->expr);
+                      "%1%: type stack / header union is unsupported", mem->expr);
+                  return false;
                 } else {
                   std::cout << mem->member << std::endl;
+                  auto type = baseType->to<IR::Type_StructLike>();
+                  if (!type) {
+                    ::error(ErrorType::ERR_UNSUPPORTED_ON_TARGET,
+                        "%1%: type is not a structlike", mem->expr);
+                    return false;
+                  }
+                  auto memberType = type->getField(mem->member)->type;
+                  if (memberType->is<IR::Type_Stack>() || memberType->is<IR::Type_HeaderUnion>()) {
+                    ::error(ErrorType::ERR_UNSUPPORTED_ON_TARGET,
+                        "%1%: type stack / header union is unsupported", mem->member);
+                    return false;
+                  }
+                  auto mt = memberType->to<IR::Type_StructLike>();
+                  if (!mt) {
+                    ::error(ErrorType::ERR_UNSUPPORTED_ON_TARGET,
+                        "%1%: type is not a structlike", mem->expr);
+                    return false;
+                  }
+
+                  // get struct definition and delete 'isValid'.
+                  auto str = std::string(hconv->getDefinition(mt,false));
+                  auto structDecl = cstring(str.replace(str.find("\tisValid : 1,\n"), 14, ""));
+                  section.structDecl += structDecl;
+                  
+                  // method update
+                  auto memberStr = mem->toString();
+                  for (auto field : mt->fields) {
+                    auto fieldStr = field->toString();
+                    if (fieldStr == "isValid") {
+                      section.methodUpdate += memberStr + "." + fieldStr + " = " + "1,\n";
+                    } else {
+                      section.methodUpdate += memberStr + "." + fieldStr + " = " + fieldStr + ",\n";
+                    }
+                  }
+                  std::cout << section.structDecl << std::endl;
+                  std::cout << section.methodUpdate << std::endl;
                 }
               }
 

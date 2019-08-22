@@ -12,13 +12,17 @@ namespace PSDN {
 
 class SDNetSection {
   public:
+    unsigned number;
+    cstring name;
     cstring structDecl;
     cstring mapDecl;
-    cstring methodUpdate;
+    std::vector<cstring> methodUpdate;
     cstring methodMove;
-    cstring methodIncrement;
-    SDNetSection() : structDecl(""), mapDecl(""), 
-      methodUpdate(""), methodMove(""), methodIncrement("") {}
+    int methodIncrement;
+    SDNetSection() : number(0), name(""), structDecl(""), mapDecl(""), 
+      methodMove(""), methodIncrement(0) {}
+
+    cstring emit();
 };
 
 class SDNetProgram {

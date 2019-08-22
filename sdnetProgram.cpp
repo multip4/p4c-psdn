@@ -58,4 +58,30 @@ unsigned SDNetProgram::getMaxPacketRegion(const IR::Type_ArchBlock* block) {
   return maxPacketRegion;
 }
 
+cstring SDNetSection::emit() {
+  SDNetProgram sdnet;
+  cstring result = "class " + name + "::Section(" + std::to_string(number) + ") {\n";
+  if (structDecl != "")
+    result += sdnet.addIndent(structDecl) + "\n";
+  if (mapDecl != "")
+    result += sdnet.addIndent(mapDecl);
+  if (!methodUpdate.empty()) {
+    result += "\tmethod update = {\n";
+    for (auto i = methodUpdate.begin(); i != methodUpdate.end(); i++) {
+      if (i != methodUpdate.end()-1)
+        result += "\t\t" + (*i) + ",\n";
+      else
+        result += "\t\t" + (*i) + "\n";
+    }
+    result += "\t}\n";
+  }
+  if (methodMove != "")
+    result += sdnet.addIndent(methodMove);
+  else
+    result += "\tmethod move_to_section = done(0);\n";
+  result += sdnet.addIndent("method increment_offset = "+std::to_string(methodIncrement)+";");
+  result += "\n}\n";
+  return result;
+}
+
 };

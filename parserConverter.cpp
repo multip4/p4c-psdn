@@ -13,8 +13,7 @@ bool ParserConverter::convertStatement(const IR::StatOrDecl* s, SDNetSection& se
     //auto type = ctxt->typeMap->getType(as->left, true);
     auto l = econv->convert(as->left);
     auto r = econv->convert(as->right);
-    section.methodUpdate += l + " = " + r + ",\n";
-    std::cout << section.methodUpdate << std::endl;
+    section.methodUpdate.push_back(l + " = " + r);
   }
   else if (s->is<IR::MethodCallStatement>()) {
     auto mc = s->to<IR::MethodCallStatement>()->methodCall;
@@ -73,20 +72,17 @@ bool ParserConverter::convertStatement(const IR::StatOrDecl* s, SDNetSection& se
             // Add to method update.
             int size = 0;
             auto memberStr = mem->toString();
-            section.methodUpdate += memberStr + "." + "isValid = 1,\n";
+            section.methodUpdate.push_back(memberStr + "." + "isValid = 1");
             for (auto field : mt->fields) {
               auto fieldStr = field->toString();
-              section.methodUpdate += memberStr + "." + fieldStr + " = " + fieldStr + ",\n";
+              section.methodUpdate.push_back(memberStr + "." + fieldStr + " = " + fieldStr);
               auto fieldType = field->type->to<IR::Type_Bits>();
               size += fieldType->size;
             }
             // Increase extract size.
-            section.methodUpdate += "TopParser_extracts.size = (TopParser_extracts.size + "
-              + std::to_string(size) + "),\n";
-            section.methodIncrement += std::to_string(size) + ";";
-
-            std::cout << section.structDecl << std::endl;
-            std::cout << section.methodUpdate << std::endl;
+            section.methodUpdate.push_back("TopParser_extracts.size = (TopParser_extracts.size + "
+              + std::to_string(size) + ")");
+            section.methodIncrement = size;
           }
         }
       } // End of extract conversion.
@@ -169,26 +165,19 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
   // Convert parser states.
   auto numStates = parser->states.size();
   for (auto state : parser->states) {
-    if (state->name == IR::ParserState::reject) {
-      cstring str = "class reject::Section(" + std::to_string(numStates) + ") {\n";
-      str += "\tmethod move_to_section = done(0);\n";
-      str += "\tmethod increment_offset = 0;\n";
-      str += "}\n";
-      sectionDef += str;
-    } else if (state->name == IR::ParserState::accept) {
-      cstring str = "class accept::Section(" + std::to_string(numStates+1) + ") {\n";
-      str += "\tmethod move_to_section = done(0);\n";
-      str += "\tmethod increment_offset = 0;\n";
-      str += "}\n";
-      sectionDef += str;
+    if (state->name == IR::ParserState::reject || state->name == IR::ParserState::accept) {
+      SDNetSection section;
+      section.name = state->name;
+      sectionDef += section.emit();
     } else {
       // Convert statements.
       SDNetSection section;
+      section.name = state->name;
       for (auto s : state->components) {
         if(convertStatement(s, section))
           return false;
       }
-
+      sectionDef += section.emit();
     }
   }
   

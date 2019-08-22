@@ -15,11 +15,11 @@ class SDNetSection {
     unsigned number;
     cstring name;
     cstring structDecl;
-    cstring mapDecl;
+    std::vector<cstring> mapDecl;
     std::vector<cstring> methodUpdate;
     cstring methodMove;
     int methodIncrement;
-    SDNetSection() : number(0), name(""), structDecl(""), mapDecl(""), 
+    SDNetSection() : number(0), name(""), structDecl(""),
       methodMove(""), methodIncrement(0) {}
 
     cstring emit();

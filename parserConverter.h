@@ -26,20 +26,28 @@ class ParserConverter : public Inspector {
     cstring tupleDef;
     cstring tupleInst;
 
-    std::map<const IR::ParserState*, SDNetSection*> stateMap;
+    unsigned statePath;
+
+    std::map<cstring, SDNetSection*> stateMap;
 
     std::map<const IR::Declaration*, cstring> localvarMap;
 
   public:
-    bool convertParams(const IR::Parameter* p);
-    bool convertStatement(const IR::StatOrDecl* s, SDNetSection* section);
     bool preorder(const IR::P4Parser* parser) override;
     ParserConverter(ConversionContext* ctxt, HeaderConverter* hconv, ExpressionConverter* econv) : 
       ctxt(ctxt), hconv(hconv), econv(econv), corelib(P4::P4CoreLibrary::instance), 
-      tupleDef(""), tupleInst("") {
+      tupleDef(""), tupleInst(""), statePath(0) {
       setName("ParserConverter");
     }
     cstring emitParser();
+
+  private:
+    bool convertParams(const IR::Parameter* p);
+    bool convertStatement(const IR::StatOrDecl* s, SDNetSection* section);
+    void convertSelectExpression(const IR::SelectExpression* expr, SDNetSection* section);
+    void convertPathExpression(const IR::PathExpression* expr, SDNetSection* section);
+    void setSectionNumber(cstring nextState, SDNetSection* section);
+    SDNetSection* getOrInsertState(cstring name);
 };
 
 

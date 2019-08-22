@@ -63,8 +63,16 @@ cstring SDNetSection::emit() {
   cstring result = "class " + name + "::Section(" + std::to_string(number) + ") {\n";
   if (structDecl != "")
     result += sdnet.addIndent(structDecl) + "\n";
-  if (mapDecl != "")
-    result += sdnet.addIndent(mapDecl);
+  if (!mapDecl.empty()) {
+    result += "\tmap transition {\n";
+    for (auto i = mapDecl.begin(); i != mapDecl.end(); i++) {
+      if (i != mapDecl.end() - 1)
+        result += "\t\t" + (*i) + ",\n";
+      else
+        result += "\t\t" + (*i) + "\n";
+    }
+    result += "\t}\n";
+  }
   if (!methodUpdate.empty()) {
     result += "\tmethod update = {\n";
     for (auto i = methodUpdate.begin(); i != methodUpdate.end(); i++) {
@@ -76,7 +84,7 @@ cstring SDNetSection::emit() {
     result += "\t}\n";
   }
   if (methodMove != "")
-    result += sdnet.addIndent(methodMove);
+    result += "\tmethod move_to_section = " + methodMove + ";\n";
   else
     result += "\tmethod move_to_section = done(0);\n";
   result += sdnet.addIndent("method increment_offset = "+std::to_string(methodIncrement)+";");

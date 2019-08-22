@@ -44,7 +44,6 @@ bool ParserConverter::convertStatement(const IR::StatOrDecl* s, SDNetSection* se
                 "%1%: type stack / header union is unsupported", mem->expr);
             return true;
           } else {
-            std::cout << mem->member << std::endl;
             auto type = baseType->to<IR::Type_StructLike>();
             if (!type) {
               ::error(ErrorType::ERR_UNSUPPORTED_ON_TARGET,
@@ -119,6 +118,45 @@ bool ParserConverter::convertParams(const IR::Parameter* p) {
   return false;
 }
 
+void ParserConverter::setSectionNumber(cstring nextState, SDNetSection* section) {
+  if (nextState != IR::ParserState::reject && nextState != IR::ParserState::accept
+      && nextState != IR::ParserState::start && stateMap.find(nextState) != stateMap.end()) {
+    section->number = stateMap.at(nextState)->number - 1;
+  } else if (nextState != IR::ParserState::start) {
+    auto nextSection = getOrInsertState(nextState);
+    nextSection->number = section->number + 1;
+  } 
+}
+
+void ParserConverter::convertSelectExpression(
+    const IR::SelectExpression* expr, SDNetSection* section) {
+  for (auto cases : expr->selectCases) {
+    cstring nextState = cases->state->path->name;
+
+    // Create map declaration.
+    if (!cases->keyset->is<IR::DefaultExpression>()) {
+      cstring key = econv->convert(cases->keyset);
+      section->mapDecl.push_back("(" + key + ", " + nextState + ")");
+    } else {
+      section->mapDecl.push_back(nextState);
+    }
+
+    // Set section number.
+    setSectionNumber(nextState, section);
+  }
+  // Add transition move.
+  auto member = expr->select->components[0];
+  section->methodMove = "transition(" + econv->convert(member) + ")";
+}
+
+
+void ParserConverter::convertPathExpression(
+    const IR::PathExpression* expr, SDNetSection* section) {
+  cstring nextState = expr->path->name;
+  setSectionNumber(nextState, section);
+  section->methodMove = nextState;
+}
+
 bool ParserConverter::preorder(const IR::P4Parser* parser) {
   if (!parser->type->is<IR::Type_Parser>()) {
     ::error(ErrorType::ERR_INVALID, "Parser is not a parser type.", parser);
@@ -163,27 +201,45 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
   }
 
   // Convert parser states.
-  auto numStates = parser->states.size();
   for (auto state : parser->states) {
     if (state->name == IR::ParserState::reject || state->name == IR::ParserState::accept) {
-      auto section = new SDNetSection();
-      section->name = state->name;
-      stateMap.emplace(state, section);
+      getOrInsertState(state->name);
     } else {
       // Convert statements.
-      auto section = new SDNetSection();
-      section->name = state->name;
+      auto section = getOrInsertState(state->name);
       for (auto s : state->components) {
         if(convertStatement(s, section))
           return false;
       }
-      stateMap.emplace(state, section);
+      if (state->name == IR::ParserState::start) {
+        section->number = 1;
+      }
+      // Convert transitions
+      if (state->selectExpression != nullptr) {
+        if (state->selectExpression->is<IR::SelectExpression>()) {
+          auto expr = state->selectExpression->to<IR::SelectExpression>();
+          convertSelectExpression(expr, section);
+        } else if (state->selectExpression->is<IR::PathExpression>()) {
+          auto expr = state->selectExpression->to<IR::PathExpression>();
+          convertPathExpression(expr, section);
+        } else {
+          BUG("%1%: unexpected selectExptression", state->selectExpression);
+        }
+      }
     }
   }
-  
-  std::cout << emitParser() << std::endl;
-
   return false;
+}
+
+SDNetSection* ParserConverter::getOrInsertState(cstring name) {
+  if (stateMap.find(name) != stateMap.end()) {
+    return stateMap.at(name);
+  } else {
+    auto section = new SDNetSection(); 
+    section->name = name;
+    stateMap.emplace(name, section);
+    return section;
+  }
 }
 
 cstring ParserConverter::emitParser() {

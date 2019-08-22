@@ -7,13 +7,13 @@
 
 namespace PSDN {
 
-bool ParserConverter::convertStatement(const IR::StatOrDecl* s, SDNetSection& section) {
+bool ParserConverter::convertStatement(const IR::StatOrDecl* s, SDNetSection* section) {
   if (s->is<IR::AssignmentStatement>()) {
     auto as = s->to<IR::AssignmentStatement>();
     //auto type = ctxt->typeMap->getType(as->left, true);
     auto l = econv->convert(as->left);
     auto r = econv->convert(as->right);
-    section.methodUpdate.push_back(l + " = " + r);
+    section->methodUpdate.push_back(l + " = " + r);
   }
   else if (s->is<IR::MethodCallStatement>()) {
     auto mc = s->to<IR::MethodCallStatement>()->methodCall;
@@ -67,22 +67,22 @@ bool ParserConverter::convertStatement(const IR::StatOrDecl* s, SDNetSection& se
             // Get struct definition and delete 'isValid'.
             auto str = std::string(hconv->getDefinition(mt,false));
             auto structDecl = cstring(str.replace(str.find("\tisValid : 1,\n"), 14, ""));
-            section.structDecl += structDecl;
+            section->structDecl += structDecl;
 
             // Add to method update.
             int size = 0;
             auto memberStr = mem->toString();
-            section.methodUpdate.push_back(memberStr + "." + "isValid = 1");
+            section->methodUpdate.push_back(memberStr + "." + "isValid = 1");
             for (auto field : mt->fields) {
               auto fieldStr = field->toString();
-              section.methodUpdate.push_back(memberStr + "." + fieldStr + " = " + fieldStr);
+              section->methodUpdate.push_back(memberStr + "." + fieldStr + " = " + fieldStr);
               auto fieldType = field->type->to<IR::Type_Bits>();
               size += fieldType->size;
             }
             // Increase extract size.
-            section.methodUpdate.push_back("TopParser_extracts.size = (TopParser_extracts.size + "
+            section->methodUpdate.push_back("TopParser_extracts.size = (TopParser_extracts.size + "
               + std::to_string(size) + ")");
-            section.methodIncrement = size;
+            section->methodIncrement = size;
           }
         }
       } // End of extract conversion.
@@ -166,18 +166,18 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
   auto numStates = parser->states.size();
   for (auto state : parser->states) {
     if (state->name == IR::ParserState::reject || state->name == IR::ParserState::accept) {
-      SDNetSection section;
-      section.name = state->name;
-      sectionDef += section.emit();
+      auto section = new SDNetSection();
+      section->name = state->name;
+      stateMap.emplace(state, section);
     } else {
       // Convert statements.
-      SDNetSection section;
-      section.name = state->name;
+      auto section = new SDNetSection();
+      section->name = state->name;
       for (auto s : state->components) {
         if(convertStatement(s, section))
           return false;
       }
-      sectionDef += section.emit();
+      stateMap.emplace(state, section);
     }
   }
   
@@ -187,6 +187,9 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
 }
 
 cstring ParserConverter::emitParser() {
+  cstring sectionDef = "";
+  for (auto s : stateMap) 
+    sectionDef += s.second->emit();
   return tupleDef + tupleInst + sectionDef;
 }
 

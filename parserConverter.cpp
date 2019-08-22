@@ -5,6 +5,8 @@
 #include "parserConverter.h"
 #include "sdnetProgram.h"
 
+#include "lib/algorithm.h"
+
 namespace PSDN {
 
 bool ParserConverter::convertStatement(const IR::StatOrDecl* s, SDNetSection* section) {
@@ -122,9 +124,11 @@ void ParserConverter::setSectionNumber(cstring nextState, SDNetSection* section)
   if (nextState != IR::ParserState::reject && nextState != IR::ParserState::accept
       && nextState != IR::ParserState::start && stateMap.find(nextState) != stateMap.end()) {
     section->number = stateMap.at(nextState)->number - 1;
+    sectionPathLength = std::max(section->number, sectionPathLength);
   } else if (nextState != IR::ParserState::start) {
     auto nextSection = getOrInsertState(nextState);
     nextSection->number = section->number + 1;
+    sectionPathLength = std::max(nextSection->number, sectionPathLength);
   } 
 }
 
@@ -165,7 +169,6 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
 
   auto parserType = parser->type->to<IR::Type_Parser>();
   auto sdnet = SDNetProgram();
-  unsigned maxPacketRegion = sdnet.getMaxPacketRegion(parserType);
 
   // Get parameters and change them into tuples.
   auto params = parser->getApplyParameters();
@@ -214,7 +217,7 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
       if (state->name == IR::ParserState::start) {
         section->number = 1;
       }
-      // Convert transitions
+      // Convert transitions.
       if (state->selectExpression != nullptr) {
         if (state->selectExpression->is<IR::SelectExpression>()) {
           auto expr = state->selectExpression->to<IR::SelectExpression>();
@@ -228,6 +231,11 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
       }
     }
   }
+
+  // Generate class definition.
+  unsigned maxPacketRegion = sdnet.getMaxPacketRegion(parserType);
+  classDef = "class TopParser_t::ParsingEngine(" + std::to_string(maxPacketRegion)
+    + "," + std::to_string(sectionPathLength) + "," + IR::ParserState::start + ")";
   return false;
 }
 
@@ -243,10 +251,12 @@ SDNetSection* ParserConverter::getOrInsertState(cstring name) {
 }
 
 cstring ParserConverter::emitParser() {
+  auto sdnet = SDNetProgram();
   cstring sectionDef = "";
   for (auto s : stateMap) 
     sectionDef += s.second->emit();
-  return tupleDef + tupleInst + sectionDef;
+  cstring body = tupleDef + tupleInst + sectionDef;
+  return classDef + " {\n" + sdnet.addIndent(body) + "}\n";
 }
 
 }; //namespace PSDN

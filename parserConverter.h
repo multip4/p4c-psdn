@@ -23,10 +23,11 @@ class ParserConverter : public Inspector {
     ExpressionConverter* econv;
     P4::P4CoreLibrary& corelib;
 
+    cstring classDef;
     cstring tupleDef;
     cstring tupleInst;
 
-    unsigned statePath;
+    unsigned sectionPathLength;
 
     std::map<cstring, SDNetSection*> stateMap;
 
@@ -36,7 +37,7 @@ class ParserConverter : public Inspector {
     bool preorder(const IR::P4Parser* parser) override;
     ParserConverter(ConversionContext* ctxt, HeaderConverter* hconv, ExpressionConverter* econv) : 
       ctxt(ctxt), hconv(hconv), econv(econv), corelib(P4::P4CoreLibrary::instance), 
-      tupleDef(""), tupleInst(""), statePath(0) {
+      classDef(""), tupleDef(""), tupleInst(""), sectionPathLength(0) {
       setName("ParserConverter");
     }
     cstring emitParser();

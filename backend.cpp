@@ -118,8 +118,10 @@ void Backend::convert(const IR::ToplevelBlock* _toplevel) {
 
   output << hconv->emitTypeDef() << std::endl;
 
-  auto parserConverter = new ParserConverter(ctxt, hconv, econv);
-  program->apply(*parserConverter);
+  auto pconv = new ParserConverter(ctxt, hconv, econv);
+  program->apply(*pconv);
+
+  output << pconv->emitParser() << std::endl;
 
 
 

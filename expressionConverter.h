@@ -19,7 +19,7 @@
 namespace PSDN {
 
 
-cstring stringRepr(mpz_class value, unsigned bytes) {
+cstring stringReprHex(mpz_class value, unsigned bytes) {
 	cstring sign = ""; 
 	const char* r;
 	cstring filler = ""; 
@@ -37,6 +37,25 @@ cstring stringRepr(mpz_class value, unsigned bytes) {
 		filler = std::string(digits, '0');
 	}   
 	return sign + "0x" + filler + r;
+}
+
+
+cstring stringRepr(mpz_class value, unsigned bytes) {
+	cstring sign = ""; 
+	const char* r;
+	if (value < 0) {
+		value =- value;
+		r = mpz_get_str(nullptr, 10, value.get_mpz_t());
+		sign = "-";
+	} else {
+		r = mpz_get_str(nullptr, 10, value.get_mpz_t());
+	}   
+
+	if (bytes > 0) {
+		int digits = bytes * 2 - strlen(r);
+		BUG_CHECK(digits >= 0, "Cannot represent %1% on %2% bytes", value, bytes);
+	}   
+	return sign + r;
 }
 
 class ExpressionConverter : public Inspector {

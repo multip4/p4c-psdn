@@ -12,6 +12,8 @@
 #include "expressionConverter.h"
 #include "frontends/p4/coreLibrary.h"
 
+#include "sdnetProgram.h"
+
 namespace PSDN {
 
 class ParserConverter : public Inspector {
@@ -21,18 +23,19 @@ class ParserConverter : public Inspector {
     ExpressionConverter* econv;
     P4::P4CoreLibrary& corelib;
 
-    cstring classDef;
     cstring tupleDef;
     cstring tupleInst;
+    cstring sectionDef;
 
     std::map<const IR::Declaration*, cstring> localvarMap;
 
   public:
-    cstring convertStatement(const IR::StatOrDecl* stat);
+    bool convertParams(const IR::Parameter* p);
+    bool convertStatement(const IR::StatOrDecl* s, SDNetSection& section);
     bool preorder(const IR::P4Parser* parser) override;
     ParserConverter(ConversionContext* ctxt, HeaderConverter* hconv, ExpressionConverter* econv) : 
       ctxt(ctxt), hconv(hconv), econv(econv), corelib(P4::P4CoreLibrary::instance), 
-      classDef(""), tupleDef(""), tupleInst("") {
+      tupleDef(""), tupleInst(""), sectionDef("") {
       setName("ParserConverter");
     }
     cstring emitParser();

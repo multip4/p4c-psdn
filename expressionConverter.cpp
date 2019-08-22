@@ -112,6 +112,7 @@ ExpressionConverter::enclosingParamReference(const IR::Expression* expression) {
 void ExpressionConverter::postorder(const IR::Member* expression) {
   cstring str;
 
+
   auto parentType = typeMap->getType(expression->expr, true);
   cstring fieldName = expression->member.name;
   auto type = typeMap->getType(expression, true);
@@ -133,9 +134,8 @@ void ExpressionConverter::postorder(const IR::Member* expression) {
   }
   
   // TODO: operations on header stacks & header unions
-  if (parentType->is<IR::Type_Struct>() || parentType->is<IR::Type_Header>()) {
-    auto param = enclosingParamReference(expression->expr);
-    CHECK_NULL(param);
+  auto param = enclosingParamReference(expression->expr);
+  if (param != nullptr) {
     auto parentName = param->getName().name;
     str = parentName + "." + fieldName;
     mapExpression(expression, str);
@@ -143,8 +143,9 @@ void ExpressionConverter::postorder(const IR::Member* expression) {
   }
 
   if (expression->expr->is<IR::Member>()) {
-    auto l = get(expression->expr);
-    str = *l + "." + fieldName;
+    auto mem = expression->expr->to<IR::Member>();
+    auto l = get(mem);
+    str = l + "." + fieldName;
     mapExpression(expression, str);
     return;
   }

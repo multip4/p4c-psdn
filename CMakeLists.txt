@@ -12,7 +12,9 @@ set (PSDN_SRCS
   expressionConverter.cpp
   headerConverter.cpp
   parserConverter.cpp
+  controlConverter.cpp
   sdnetProgram.cpp
+  controlFlowGraph.cpp
   )
 
 set (PSDN_HDRS
@@ -30,7 +32,9 @@ set (PSDN_HDRS
   conversionContext.h
   headerConverter.h
   parserConverter.h
+  controlConverter.h
   sdnetProgram.h
+  controlFlowGraph.h
   )
 
 add_cpplint_files(${CMAKE_CURRENT_SOURCE_DIR} "${PSDN_SRCS};${PSDN_HDRS}")

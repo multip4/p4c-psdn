@@ -10,6 +10,7 @@
 #include "expressionConverter.h"
 #include "headerConverter.h"
 #include "parserConverter.h"
+#include "controlConverter.h"
 
 #include "lib/null.h"
 #include "lib/cstring.h"
@@ -122,6 +123,8 @@ void Backend::convert(const IR::ToplevelBlock* _toplevel) {
   program->apply(*pconv);
 
   output << pconv->emitParser() << std::endl;
+
+  auto cconv = new ControlConverter(ctxt, hconv, econv);
 
 
 

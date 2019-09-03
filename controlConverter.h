@@ -14,6 +14,7 @@
 
 #include "expressionConverter.h"
 #include "headerConverter.h"
+#include "controlFlowGraph.h"
 
 namespace PSDN {
 
@@ -24,10 +25,15 @@ private:
   HeaderConverter* hconv;
   ExpressionConverter* econv;
 
+  cstring result;
+
 public:
+  cstring getKeyMatchType(const IR::KeyElement *ke);
+  cstring convertKey(const IR::Key* key);
+  cstring convertTable(const CFG::TableNode* node);
   bool preorder(const IR::P4Control* control) override;
   ControlConverter(ConversionContext* ctxt, HeaderConverter* hconv, ExpressionConverter* econv) :
-    ctxt(ctxt), corelib(P4::P4CoreLibrary::instance), hconv(hconv), econv(econv)
+    ctxt(ctxt), corelib(P4::P4CoreLibrary::instance), hconv(hconv), econv(econv), result("")
   { setName("ControlConverter"); }
 
 };

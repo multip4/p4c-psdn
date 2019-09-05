@@ -94,7 +94,6 @@ bool ParserConverter::convertStatement(const IR::StatOrDecl* s, SDNetSection* se
 
 bool ParserConverter::convertParams(const IR::Parameter* p) {
   // Expect type of p is packet_in, header, or metadata.
-  auto sdnet = SDNetProgram();
   auto pt = ctxt->typeMap->getTypeType(p->type, true);
   if (pt->is<IR::Type_Extern>()) {
     auto packetInType = pt->to<IR::Type_Extern>();
@@ -111,7 +110,7 @@ bool ParserConverter::convertParams(const IR::Parameter* p) {
     os << p->direction;
     cstring direction = os.str();
     auto body = hconv->getDefinition(st, false);
-    tupleDef += sdnet.generateTuple(name + "_t", direction, body);
+    tupleDef += SDNet::generateTuple(name + "_t", direction, body);
     tupleInst += name + "_t " + name + ";\n";
   } else {
     ::error(ErrorType::ERR_INVALID, "Parameter is not a packet_in or struct type.", pt);
@@ -168,7 +167,6 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
   }
 
   auto parserType = parser->type->to<IR::Type_Parser>();
-  auto sdnet = SDNetProgram();
 
   // Get parameters and change them into tuples.
   auto params = parser->getApplyParameters();
@@ -177,7 +175,7 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
       return false;
   }
   // Add extract tuple.
-  tupleDef += sdnet.generateTuple("TopParser_extracts_t", "out", "struct { size : 32 }");
+  tupleDef += SDNet::generateTuple("TopParser_extracts_t", "out", "struct { size : 32 }");
   tupleInst += "TopParser_extracts_t TopParser_extracts;\n";
   
 
@@ -199,7 +197,7 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
       else
         localBody += "\t" + l + ",\n";
     }
-    tupleDef += sdnet.generateTuple("local_t","",localBody);
+    tupleDef += SDNet::generateTuple("local_t","",localBody);
     tupleInst += "\tlocal_t local;\n";
   }
 
@@ -233,7 +231,7 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
   }
 
   // Generate class definition.
-  unsigned maxPacketRegion = sdnet.getMaxPacketRegion(parserType);
+  unsigned maxPacketRegion = SDNet::getMaxPacketRegion(parserType);
   classDef = "class TopParser_t::ParsingEngine(" + std::to_string(maxPacketRegion)
     + "," + std::to_string(sectionPathLength) + "," + IR::ParserState::start + ")";
   return false;
@@ -251,12 +249,11 @@ SDNetSection* ParserConverter::getOrInsertState(cstring name) {
 }
 
 cstring ParserConverter::emitParser() {
-  auto sdnet = SDNetProgram();
   cstring sectionDef = "";
   for (auto s : stateMap) 
     sectionDef += s.second->emit();
   cstring body = tupleDef + tupleInst + sectionDef;
-  return classDef + " {\n" + sdnet.addIndent(body) + "}\n";
+  return classDef + " {\n" + SDNet::addIndent(body) + "}\n";
 }
 
 }; //namespace PSDN

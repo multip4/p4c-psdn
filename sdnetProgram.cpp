@@ -6,14 +6,16 @@
 
 namespace PSDN {
 
-cstring SDNetProgram::generateTuple(cstring name, cstring direction, cstring body) {
+namespace SDNet {
+
+cstring generateTuple(cstring name, cstring direction, cstring body) {
   cstring str = "class " + name + "::Tuple(" + direction + ") {\n";
   str += addIndent(body);
   str += "\n}\n";
   return str;
 }
 
-cstring SDNetProgram::addIndent(cstring str, unsigned n) {
+cstring addIndent(cstring str, unsigned n) {
   cstring indent = "";
   for (unsigned i = 0; i < n; i++) {
     indent += "\t";
@@ -21,7 +23,7 @@ cstring SDNetProgram::addIndent(cstring str, unsigned n) {
   return indent + str.replace("\n","\n"+indent);
 }
 
-unsigned SDNetProgram::getMaxPacketRegion(const IR::Type_ArchBlock* block) {
+unsigned getMaxPacketRegion(const IR::Type_ArchBlock* block) {
   unsigned maxPacketRegion = 12144;
   auto annotations = block->getAnnotations();
   if (annotations->annotations.size() == 0) {
@@ -58,11 +60,12 @@ unsigned SDNetProgram::getMaxPacketRegion(const IR::Type_ArchBlock* block) {
   return maxPacketRegion;
 }
 
+}; // namespace SDNet 
+
 cstring SDNetSection::emit() {
-  SDNetProgram sdnet;
   cstring result = "class " + name + "::Section(" + std::to_string(number) + ") {\n";
   if (structDecl != "")
-    result += sdnet.addIndent(structDecl) + "\n";
+    result += SDNet::addIndent(structDecl) + "\n";
   if (!mapDecl.empty()) {
     result += "\tmap transition {\n";
     for (auto i = mapDecl.begin(); i != mapDecl.end(); i++) {
@@ -87,9 +90,9 @@ cstring SDNetSection::emit() {
     result += "\tmethod move_to_section = " + methodMove + ";\n";
   else
     result += "\tmethod move_to_section = done(0);\n";
-  result += sdnet.addIndent("method increment_offset = "+std::to_string(methodIncrement)+";");
+  result += SDNet::addIndent("method increment_offset = "+std::to_string(methodIncrement)+";");
   result += "\n}\n";
   return result;
 }
 
-};
+}; // namespace PSDN

@@ -25,11 +25,10 @@ class SDNetSection {
     cstring emit();
 };
 
-class SDNetProgram {
-  public:
-    cstring addIndent(cstring str, unsigned n = 1);
-    cstring generateTuple(cstring name, cstring direction, cstring content);
-    unsigned getMaxPacketRegion(const IR::Type_ArchBlock* block);
+namespace SDNet {
+  cstring addIndent(cstring str, unsigned n = 1);
+  cstring generateTuple(cstring name, cstring direction, cstring content);
+  unsigned getMaxPacketRegion(const IR::Type_ArchBlock* block);
 };
 
 }; //namespace PSDN

@@ -40,10 +40,13 @@ cstring ControlConverter::convertKey(const IR::Key* key) {
       ::error(ErrorType::ERR_UNSUPPORTED, "%1%: unsupported key type %2%. "
           "Supported key types are bit<> or boolean.", expr, type);
 
+    // All match types should be same.
     auto matchType = getKeyMatchType(ke);
     if (tableMatchType != "" && tableMatchType != matchType)
       ::error(ErrorType::ERR_UNSUPPORTED, "%1%: matchType should be same.", ke);
     tableMatchType = matchType;
+
+
   }
   return keyResult;
 }

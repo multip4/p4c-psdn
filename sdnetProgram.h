@@ -10,7 +10,21 @@
 
 namespace PSDN {
 
-class SDNetSection {
+namespace SDNet {
+
+class Tuple {
+  public:
+    cstring name;
+    cstring direction;
+    cstring body;
+    Tuple() : name(""), direction(""), body("") {}
+    Tuple(cstring name, cstring direction, cstring body)
+      : name(name), direction(direction), body(body) {}
+
+    cstring emit();
+};
+
+class Section {
   public:
     unsigned number;
     cstring name;
@@ -19,15 +33,20 @@ class SDNetSection {
     std::vector<cstring> methodUpdate;
     cstring methodMove;
     int methodIncrement;
-    SDNetSection() : number(0), name(""), structDecl(""),
+    Section() : number(0), name(""), structDecl(""),
       methodMove(""), methodIncrement(0) {}
 
     cstring emit();
 };
 
-namespace SDNet {
+class TupleEngine {
+  public:
+    cstring name;
+    std::vector<Tuple*> tuples;
+    std::vector<Section*> sections;
+};
+
   cstring addIndent(cstring str, unsigned n = 1);
-  cstring generateTuple(cstring name, cstring direction, cstring content);
   unsigned getMaxPacketRegion(const IR::Type_ArchBlock* block);
 };
 

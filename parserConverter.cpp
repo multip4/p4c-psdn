@@ -9,7 +9,7 @@
 
 namespace PSDN {
 
-bool ParserConverter::convertStatement(const IR::StatOrDecl* s, SDNetSection* section) {
+bool ParserConverter::convertStatement(const IR::StatOrDecl* s, SDNet::Section* section) {
   if (s->is<IR::AssignmentStatement>()) {
     auto as = s->to<IR::AssignmentStatement>();
     //auto type = ctxt->typeMap->getType(as->left, true);
@@ -110,7 +110,7 @@ bool ParserConverter::convertParams(const IR::Parameter* p) {
     os << p->direction;
     cstring direction = os.str();
     auto body = hconv->getDefinition(st, false);
-    tupleDef += SDNet::generateTuple(name + "_t", direction, body);
+    tuples.push_back(new SDNet::Tuple(name + "_t", direction, body));
     tupleInst += name + "_t " + name + ";\n";
   } else {
     ::error(ErrorType::ERR_INVALID, "Parameter is not a packet_in or struct type.", pt);
@@ -119,7 +119,7 @@ bool ParserConverter::convertParams(const IR::Parameter* p) {
   return false;
 }
 
-void ParserConverter::setSectionNumber(cstring nextState, SDNetSection* section) {
+void ParserConverter::setSectionNumber(cstring nextState, SDNet::Section* section) {
   if (nextState != IR::ParserState::reject && nextState != IR::ParserState::accept
       && nextState != IR::ParserState::start && stateMap.find(nextState) != stateMap.end()) {
     section->number = stateMap.at(nextState)->number - 1;
@@ -132,7 +132,7 @@ void ParserConverter::setSectionNumber(cstring nextState, SDNetSection* section)
 }
 
 void ParserConverter::convertSelectExpression(
-    const IR::SelectExpression* expr, SDNetSection* section) {
+    const IR::SelectExpression* expr, SDNet::Section* section) {
   for (auto cases : expr->selectCases) {
     cstring nextState = cases->state->path->name;
 
@@ -154,7 +154,7 @@ void ParserConverter::convertSelectExpression(
 
 
 void ParserConverter::convertPathExpression(
-    const IR::PathExpression* expr, SDNetSection* section) {
+    const IR::PathExpression* expr, SDNet::Section* section) {
   cstring nextState = expr->path->name;
   setSectionNumber(nextState, section);
   section->methodMove = nextState;
@@ -175,7 +175,7 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
       return false;
   }
   // Add extract tuple.
-  tupleDef += SDNet::generateTuple("TopParser_extracts_t", "out", "struct { size : 32 }");
+  tuples.push_back(new SDNet::Tuple("TopParser_extracts_t", "out", "struct { size : 32 }"));
   tupleInst += "TopParser_extracts_t TopParser_extracts;\n";
   
 
@@ -197,7 +197,7 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
       else
         localBody += "\t" + l + ",\n";
     }
-    tupleDef += SDNet::generateTuple("local_t","",localBody);
+    tuples.push_back(new SDNet::Tuple("local_t","",localBody));
     tupleInst += "\tlocal_t local;\n";
   }
 
@@ -237,11 +237,11 @@ bool ParserConverter::preorder(const IR::P4Parser* parser) {
   return false;
 }
 
-SDNetSection* ParserConverter::getOrInsertState(cstring name) {
+SDNet::Section* ParserConverter::getOrInsertState(cstring name) {
   if (stateMap.find(name) != stateMap.end()) {
     return stateMap.at(name);
   } else {
-    auto section = new SDNetSection(); 
+    auto section = new SDNet::Section(); 
     section->name = name;
     stateMap.emplace(name, section);
     return section;
@@ -252,6 +252,9 @@ cstring ParserConverter::emitParser() {
   cstring sectionDef = "";
   for (auto s : stateMap) 
     sectionDef += s.second->emit();
+  cstring tupleDef = "";
+  for (auto t : tuples)
+    tupleDef += t->emit();
   cstring body = tupleDef + tupleInst + sectionDef;
   return classDef + " {\n" + SDNet::addIndent(body) + "}\n";
 }

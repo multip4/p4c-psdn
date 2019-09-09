@@ -8,7 +8,7 @@ namespace PSDN {
 
 namespace SDNet {
 
-cstring generateTuple(cstring name, cstring direction, cstring body) {
+cstring Tuple::emit() {
   cstring str = "class " + name + "::Tuple(" + direction + ") {\n";
   str += addIndent(body);
   str += "\n}\n";
@@ -60,9 +60,7 @@ unsigned getMaxPacketRegion(const IR::Type_ArchBlock* block) {
   return maxPacketRegion;
 }
 
-}; // namespace SDNet 
-
-cstring SDNetSection::emit() {
+cstring Section::emit() {
   cstring result = "class " + name + "::Section(" + std::to_string(number) + ") {\n";
   if (structDecl != "")
     result += SDNet::addIndent(structDecl) + "\n";
@@ -94,5 +92,7 @@ cstring SDNetSection::emit() {
   result += "\n}\n";
   return result;
 }
+
+}; // namespace SDNet 
 
 }; // namespace PSDN

@@ -29,34 +29,73 @@ cstring ControlConverter::getKeyMatchType(const IR::KeyElement *ke) {
   return "INVALID";
 }
 
-cstring ControlConverter::convertKey(const IR::Key* key) {
-  cstring keyResult = "";
-  cstring tableMatchType = "";
-
-  for (auto ke : key->keyElements) {
-    auto expr = ke->expression;
-    auto type = ctxt->typeMap->getType(expr, true);
-    if (!type->is<IR::Type_Bits>() && !type->is<IR::Type_Boolean>())
-      ::error(ErrorType::ERR_UNSUPPORTED, "%1%: unsupported key type %2%. "
-          "Supported key types are bit<> or boolean.", expr, type);
-
-    // All match types should be same.
-    auto matchType = getKeyMatchType(ke);
-    if (tableMatchType != "" && tableMatchType != matchType)
-      ::error(ErrorType::ERR_UNSUPPORTED, "%1%: matchType should be same.", ke);
-    tableMatchType = matchType;
-
-
-  }
-  return keyResult;
-}
-
 cstring ControlConverter::convertTable(const CFG::TableNode* node) {
   cstring tableResult = "";
   auto table = node->table;
+
+  // Get key information.
   auto key = table->getKey();
-  if (key != nullptr)
-    tableResult += convertKey(key);
+  std::vector<unsigned> keyWidths;
+  
+  if (key != nullptr) {
+    for (auto ke : key->keyElements) {
+      auto expr = ke->expression;
+      auto type = ctxt->typeMap->getType(expr, true);
+
+      // Get the number of bits
+      if (type->is<IR::Type_Bits>()) {
+        auto tb = type->to<IR::Type_Bits>();
+        keyWidths.push_back(tb->size);
+      } else if (type->is<IR::Type_Boolean>()) {
+        keyWidths.push_back(1);
+      } else {
+        ::error(ErrorType::ERR_UNSUPPORTED, "%1%: unsupported key type %2%. "
+            "Supported key types are bit<> or boolean.", expr, type);
+      }
+
+      // All match types should be same.
+      auto firstMatchType = getKeyMatchType(*(key->keyElements.begin()));
+      auto matchType = getKeyMatchType(ke);
+      if (matchType != "" && matchType != firstMatchType)
+        ::error(ErrorType::ERR_UNSUPPORTED, "%1%: matchType should be same.", ke);
+    }
+  }
+
+  std::cout << "Key widths of table " << table->name.toString() << std::endl;
+  for (auto kw : keyWidths)
+    std::cout << kw << " ";
+  std::cout << std::endl;
+
+  // Get action information.
+  auto actionList = table->getActionList();
+
+  if (actionList != nullptr) {
+    for (auto ae : actionList->actionList) {
+      auto decl = ctxt->refMap->getDeclaration(ae->getPath(), true);
+      BUG_CHECK(decl->is<IR::P4Action>(), "%1%: should be an action name", ae);
+      auto action = decl->to<IR::P4Action>();
+
+      cstring structDecl = "struct " + action->name.toString() + "_0_cp {";
+      bool addComma = false;
+      for (auto param : action->getParameters()->parameters) {
+        auto name = param->name;
+        auto type = param->type;
+
+        // Get the number of bits
+        int typeWidth = ctxt->typeMap->minWidthBits(type, param);
+
+        if (addComma)
+          structDecl += ",";
+        structDecl += "\n\t" + name.toString() + " : " + std::to_string(typeWidth);
+        addComma = true;
+      }
+      structDecl += "\n}";
+    std::cout << structDecl << std::endl;
+    }
+  }
+
+  // If there is no key, make request tuple with 1.
+  
 
   return tableResult;
 }

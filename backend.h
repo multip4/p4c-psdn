@@ -5,12 +5,14 @@
 #ifndef PSDN_BACKEND_H
 #define PSDN_BACKEND_H
 
+#include "error.h"
 #include "options.h"
 #include "conversionContext.h"
 
 #include "ir/ir.h"
 #include "midend/convertEnums.h"
 #include "frontends/p4/coreLibrary.h"
+
 
 #include <iostream>
 #include <fstream>
@@ -37,6 +39,11 @@ class Backend {
       options(options), refMap(refMap), typeMap(typeMap), enumMap(enumMap),
       corelib(P4::P4CoreLibrary::instance) { 
         refMap->setIsV1(false); //Assume sume_switch, not a V1 model.
+
+      // Add new error/warning types of PSDN Compiler
+      auto errorCatalog = ErrorCatalog::getCatalog();
+      errorCatalog.add(PSDN::PSDNErrorType::WARN_TABLE_KEY_PADDING, "table_key_padding", "");
+
     }
     void convert(const IR::ToplevelBlock* _toplevel);
 };

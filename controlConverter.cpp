@@ -5,6 +5,7 @@
 #include "controlConverter.h"
 
 #include "controlFlowGraph.h"
+#include "error.h"
 
 namespace PSDN {
 
@@ -120,6 +121,14 @@ cstring ControlConverter::convertTable(const CFG::TableNode* node) {
     cstring requestTupleName = table->getName().name + "_req_t";
     cstring requestTupleBody = "struct {\n";
 
+    // If the total key width is less than 12 bits, add padding.
+    if (keyWidth < 12) {
+      requestTupleBody += "\tlookup_request_padding : " + std::to_string(12-keyWidth) + ",\n";
+      ::warning(PSDNErrorType::WARN_TABLE_KEY_PADDING,
+          "Table %1% key pre-padded with %2% bits",
+          table, 12-keyWidth);
+    }
+
     for (unsigned i = 1; i <= keyWidths.size(); i++) {
       requestTupleBody += "\tlookup_request_key_" + std::to_string(i) 
         + " : " + std::to_string(keyWidths[i-1]);
@@ -151,7 +160,7 @@ cstring ControlConverter::convertTable(const CFG::TableNode* node) {
     auto lookupEngine = new SDNet::LookupEngine();
     lookupEngine->name = table->getName().name;
     lookupEngine->matchType = matchType;
-    lookupEngine->keyWidth = keyWidth;
+    lookupEngine->keyWidth = (keyWidth < 12) ? 12 : keyWidth;
     lookupEngine->valueWidth = valueWidth + actionRunBits;
 
 

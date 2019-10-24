@@ -28,8 +28,8 @@ cstring LookupEngine::emit() {
   str += "\t" + requestTuple->name + " request;\n";
   str += "\t" + responseTuple->name + " response;\n";
 
-  str += "\t send_request = { key = request }\n";
-  str += "\t receive_response = { response = value }\n";
+  str += "\tsend_request = { key = request }\n";
+  str += "\treceive_response = { response = value }\n";
   str += "}";
 
   return str;

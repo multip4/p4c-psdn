@@ -153,12 +153,12 @@ cstring ControlConverter::convertTable(const CFG::TableNode* node) {
 
     for (auto rv : responseValues)
       responseTupleBody += ",\n\t" + rv + " : " + rv + "_cp";
-    responseTupleBody += " }";
+    responseTupleBody += "\n}";
 
 
     // Generate Lookup engine
     auto lookupEngine = new SDNet::LookupEngine();
-    lookupEngine->name = table->getName().name;
+    lookupEngine->name = table->name + "_t";
     lookupEngine->matchType = matchType;
     lookupEngine->keyWidth = (keyWidth < 12) ? 12 : keyWidth;
     lookupEngine->valueWidth = valueWidth + actionRunBits;

@@ -15,6 +15,26 @@ cstring Tuple::emit() {
   return str;
 }
 
+cstring LookupEngine::emit() {
+  cstring str = "class " + name + "::LookupEngine(";
+  str += matchType + "," + std::to_string(capacity) + ",";
+  str += std::to_string(keyWidth) + "," + std::to_string(valueWidth) + ",";
+  str += std::to_string(responseType) + "," + (external ? "1" : "0");
+  str += ") {\n";
+
+  str += addIndent(requestTuple->emit()) + "\n";
+  str += addIndent(responseTuple->emit()) + "\n";
+  
+  str += "\t" + requestTuple->name + " request;\n";
+  str += "\t" + responseTuple->name + " response;\n";
+
+  str += "\t send_request = { key = request }\n";
+  str += "\t receive_response = { response = value }\n";
+  str += "}";
+
+  return str;
+}
+
 cstring addIndent(cstring str, unsigned n) {
   cstring indent = "";
   for (unsigned i = 0; i < n; i++) {

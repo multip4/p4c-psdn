@@ -42,8 +42,27 @@ class Section {
 class TupleEngine {
   public:
     cstring name;
+    cstring externalStructDecl;
     std::vector<Tuple*> tuples;
     std::vector<Section*> sections;
+};
+
+class LookupEngine {
+  public:
+    cstring name;
+    cstring matchType;
+    unsigned capacity;
+    unsigned keyWidth;
+    unsigned valueWidth;
+    unsigned responseType;
+    bool external;
+    Tuple* requestTuple;
+    Tuple* responseTuple;
+
+    cstring emit();
+
+    LookupEngine() : name(""), matchType(""), capacity(64),
+        keyWidth(0), valueWidth(0), responseType(1), external(false) {}
 };
 
   cstring addIndent(cstring str, unsigned n = 1);

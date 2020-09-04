@@ -44,7 +44,7 @@
 #include "midend/tableHit.h"
 #include "midend/midEndLast.h"
 #include "midend/fillEnumMap.h"
-#include "midend/removeAssertAssume.h"
+//#include "midend/removeAssertAssume.h"
 
 namespace PSDN {
 
@@ -69,7 +69,7 @@ MidEnd::MidEnd(CompilerOptions& options) {
 	//Add midend optimizations if a program is parsed from frontend.
 	if (PSDN::PSDNContext::get().options().loadIRFromJson == false) {
 		addPasses({
-				options.ndebug ? new P4::RemoveAssertAssume(&refMap, &typeMap) : nullptr,
+				// options.ndebug ? new P4::RemoveAssertAssume(&refMap, &typeMap) : nullptr,
 				new P4::EliminateNewtype(&refMap, &typeMap),
 				new P4::EliminateSerEnums(&refMap, &typeMap),
 				new P4::RemoveActionParameters(&refMap, &typeMap),

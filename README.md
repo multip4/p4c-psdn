@@ -36,10 +36,12 @@ p4c-psdn converts P4 programs into Xilinx SDNet backends with parallelization.
 
 ## Dependencies
 Check the dependencies on [p4c README](https://github.com/p4lang/p4c#dependencies).
-p4c-psdn does not require other dependencies that is not required from p4c.
+p4c-psdn does not require other dependencies that are not required from p4c.
 
 ## Development Notes
-- Currently p4c-psdn supports conversion of parser block.
+- Support conversion of headers and a parser.
+- Merge DependencyAnalysis project to here: now support data dependency
+analysis of tables.
 
 ## Contact Info
 Seungbin Song (seungbin@yonsei.ac.kr)

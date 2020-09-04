@@ -169,6 +169,11 @@ cstring ControlConverter::convertTable(const CFG::TableNode* node) {
 
     std::cout << lookupEngine->emit() << std::endl;
 
+    lookupEngines.push_back(lookupEngine);
+    
+    // Makeup Tuple engine
+
+
   } else if (actionList != nullptr && !actionList->actionList.empty()) {
 
   }
@@ -187,6 +192,11 @@ bool ControlConverter::preorder(const IR::P4Control* control) {
   }
 
   std::set<const IR::P4Table*> done;
+
+  // Make the first (empty) tuple engine
+  auto firstTE = new SDNet::TupleEngine();
+  firstTE->name = control->name.name + "_Start";
+  tupleEngines.push_back(firstTE);
 
   for (auto node :cfg->allNodes) {
     if (node->is<CFG::TableNode>()) {

@@ -15,6 +15,8 @@ set (PSDN_SRCS
   controlConverter.cpp
   sdnetProgram.cpp
   controlFlowGraph.cpp
+  tableAnalyzer.cpp
+  graphs.cpp
   )
 
 set (PSDN_HDRS
@@ -35,6 +37,8 @@ set (PSDN_HDRS
   controlConverter.h
   sdnetProgram.h
   controlFlowGraph.h
+  tableAnalyzer.h
+  graphs.h
   )
 
 add_cpplint_files(${CMAKE_CURRENT_SOURCE_DIR} "${PSDN_SRCS};${PSDN_HDRS}")

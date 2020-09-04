@@ -16,6 +16,8 @@
 #include "headerConverter.h"
 #include "controlFlowGraph.h"
 
+#include "sdnetProgram.h"
+
 namespace PSDN {
 
 class ControlConverter : public Inspector {
@@ -26,6 +28,9 @@ private:
   ExpressionConverter* econv;
 
   cstring result;
+
+  std::vector<SDNet::TupleEngine*> tupleEngines;
+  std::vector<SDNet::LookupEngine*> lookupEngines;
 
 public:
   cstring getKeyMatchType(const IR::KeyElement *ke);

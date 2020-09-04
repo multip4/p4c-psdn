@@ -24,6 +24,8 @@
 #include "midend.h"
 #include "backend.h"
 
+#include "tableAnalyzer.h"
+
 int main(int argc, char *const argv[]) {
   setup_gc_logging();
 
@@ -109,9 +111,13 @@ int main(int argc, char *const argv[]) {
     return 1;
   }
 
+  auto dda = new PSDN::TableAnalyzer(&midEnd.refMap, &midEnd.typeMap, options.file);
+
+
   auto backend = new PSDN::Backend(options, &midEnd.refMap, &midEnd.typeMap, &midEnd.enumMap);
 
   try {
+    toplevel->getMain()->apply(*dda);
     backend->convert(toplevel);
   } catch (const Util::P4CExceptionBase &err) {
     ::error(err.what());

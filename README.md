@@ -34,7 +34,7 @@ p4c-multip4 converts P4 programs into Xilinx SDNet backends with parallelization
 
 ## Dependencies
 Check the dependencies on [p4c README](https://github.com/p4lang/p4c#dependencies).
-p4c-psdn does not require other dependencies that are not required from p4c.
+p4c-multip4 does not require other dependencies that are not required from p4c.
 
 ## Development Notes
 - Support conversion of headers and a parser.

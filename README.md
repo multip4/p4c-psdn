@@ -1,5 +1,5 @@
-# p4c-psdn
-p4c-psdn converts P4 programs into Xilinx SDNet backends with parallelization.
+# p4c-multip4
+p4c-multip4 converts P4 programs into Xilinx SDNet backends with parallelization.
 
 ## How to build
 1. Clone [p4c](https://github.com/p4lang/p4c). 
@@ -16,13 +16,11 @@ p4c-psdn converts P4 programs into Xilinx SDNet backends with parallelization.
    mkdir extensions
    cd extensions
    ```
-4. Clone p4c-psdn. 
-    ```
-    git clone https://github.com/multip4/p4c-psdn.git
+4. Clone p4c-multip4. 
     ```
     Or you can make a simbolic link in the `extensions` directory.
     ```
-    ln -s <path/to/project/directory> p4c-psdn
+    ln -s <path/to/project/directory> p4c-multip4
     ```
 5. Make build directory and build.
     ```

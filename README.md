@@ -2,29 +2,31 @@
 p4c-multip4 converts P4 programs into Xilinx SDNet backends with parallelization.
 
 ## How to build
-1. Clone [p4c](https://github.com/p4lang/p4c). 
+1. Clone [p4c](https://github.com/p4lang/p4c). Assume that you choose the home directory.
     ```
+    cd ~
     git clone --recursive https://github.com/p4lang/p4c.git
     ```
 2. Move to the checkpoint. 
     ```
-    cd p4c
+    cd ~/p4c
     git checkout 8eb631f9238416e4f13e2f222116be7a68570137
     ```
 3. Make extensions directory. 
    ```
    mkdir extensions
-   cd extensions
    ```
-4. Clone p4c-psdn. 
+4. Clone p4c-psdn to your preferred location. Assume that you choose the home directory.
     ```
+    cd ~
     git clone https://github.com/multip4/p4c-psdn.git
     ```
-    Or you can make a simbolic link in the `extensions` directory.
+5. Make a simbolic link in the `extensions` directory.
     ```
-    ln -s <path/to/project/directory> p4c-multip4
+    cd ~/p4c/extensions
+    ln -s ~/p4c-psdn p4c-psdn
     ```
-5. Make build directory and build.
+6. Make build directory and build.
     ```
     cd .. 
     mkdir build
@@ -32,7 +34,7 @@ p4c-multip4 converts P4 programs into Xilinx SDNet backends with parallelization
     make -j4
     make -j4 check
     ```
-6. Follow further instructions in [p4c README](https://github.com/p4lang/p4c#getting-started).
+7. Follow further instructions in [p4c README](https://github.com/p4lang/p4c#getting-started).
 
 ## Dependencies
 Check the dependencies on [p4c README](https://github.com/p4lang/p4c#dependencies).

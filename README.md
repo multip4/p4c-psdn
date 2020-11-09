@@ -16,7 +16,9 @@ p4c-multip4 converts P4 programs into Xilinx SDNet backends with parallelization
    mkdir extensions
    cd extensions
    ```
-4. Clone p4c-multip4. 
+4. Clone p4c-psdn. 
+    ```
+    git clone https://github.com/multip4/p4c-psdn.git
     ```
     Or you can make a simbolic link in the `extensions` directory.
     ```
